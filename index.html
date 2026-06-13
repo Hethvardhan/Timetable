@@ -582,9 +582,7 @@ function renderTasks(){
   let isToday=k===todayKey();
   
   let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
-  if (isToday) {
-    titleString += ' · TODAY';
-  }
+  
   
   let card=document.createElement("div"); 
   card.className="day-card open"; 
