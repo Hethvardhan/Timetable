@@ -581,8 +581,7 @@ function renderTasks(){
   let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
   let isToday=k===todayKey();
   
-  let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
-  
+let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });  
   
   let card=document.createElement("div"); 
   card.className="day-card open"; 
