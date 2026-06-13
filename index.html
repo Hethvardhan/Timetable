@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>planner · tasks + calendar + progress</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     :root {
@@ -36,8 +36,8 @@
     
     .stat-row { display:flex; gap:14px; overflow-x:auto; margin-bottom:25px; width: 100%; }
     .stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:16px 24px; text-align: center; flex: 1; min-width: 180px; }
-    .stat-num { font-family:'JetBrains Mono', monospace; font-size:30px; font-weight:600; font-feature-settings:"tnum"; }
-    .stat-label { font-size:11px; font-family:'JetBrains Mono'; color:var(--text3); text-transform:uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+    .stat-num { font-family:'Outfit', sans-serif; font-size:30px; font-weight:700; font-feature-settings:"tnum"; }
+    .stat-label { font-size:11px; font-family:'Outfit', sans-serif; font-weight: 600; color:var(--text3); text-transform:uppercase; margin-top: 4px; letter-spacing: 0.5px; }
     
     .date-nav { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:15px; margin:20px 0; width: 100%; }
     .nav-group { display:flex; gap:12px; align-items:center; margin: 0 auto; justify-content: center; flex-wrap: wrap; }
@@ -83,19 +83,19 @@
     .prio-low { background:rgba(45,212,191,0.2); color:var(--low); }
     
     .duration-inputs { display:flex; gap:6px; align-items:center; background:var(--bg3); padding:5px 14px; border-radius:30px; }
-    .dur-num { width:44px; background:transparent; border:1px solid var(--border); border-radius:20px; padding:4px; text-align:center; color:white; font-family:'JetBrains Mono'; font-size:13px; }
+    .dur-num { width:44px; background:transparent; border:1px solid var(--border); border-radius:20px; padding:4px; text-align:center; color:white; font-family:'Outfit', sans-serif; font-size:13px; font-weight: 600; }
     .log-time-btn { background:var(--primary-bg); border:none; border-radius:20px; padding:4px 12px; font-size:11px; font-weight:700; cursor:pointer; color:var(--primary); text-transform: uppercase; }
-    .task-duration { font-family:'JetBrains Mono'; font-size:12px; color:var(--text3); min-width:65px; }
+    .task-duration { font-family:'Outfit', sans-serif; font-size:12px; font-weight: 600; color:var(--text3); min-width:65px; }
     
     .add-task { display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; align-items:center; width: 100%; }
     .add-input { flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:40px; padding:14px 22px; font-size:15px; color:var(--text); }
     
     .event-item { border-radius:24px; padding:18px 28px; margin:12px 0; display:flex; align-items:center; gap:20px; font-size:17px; font-weight: 800; justify-content: center; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 6px 16px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12); width: 100%; color: #000 !important; }
-    .event-item-time { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; background: rgba(0, 0, 0, 0.12); padding: 5px 16px; border-radius: 30px; margin-left: auto; color: #000; letter-spacing: 0px; }
+    .event-item-time { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; background: rgba(0, 0, 0, 0.12); padding: 5px 16px; border-radius: 30px; margin-left: auto; color: #000; letter-spacing: 0px; }
     .notes-area { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:18px; padding:18px; margin-top:18px; color:var(--text2); resize:vertical; font-size: 15px; }
     
     .cal-grid { background:var(--bg2); border:1px solid var(--border); border-radius:24px; overflow:hidden; margin-top:20px; width: 100%; }
-    .cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; padding:16px 0; background:var(--bg3); font-family:'JetBrains Mono'; font-size:14px; font-weight: 700; color:var(--text2); border-bottom: 1px solid var(--border); }
+    .cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; padding:16px 0; background:var(--bg3); font-family:'Outfit', sans-serif; font-size:14px; font-weight: 700; color:var(--text2); border-bottom: 1px solid var(--border); }
     .cal-days { display:grid; grid-template-columns:repeat(7,1fr); }
     .cal-cell { min-height:180px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:14px 12px; cursor:pointer; position:relative; display: flex; flex-direction: column; gap: 8px; }
     .cal-cell:hover { background:var(--bg3); }
@@ -103,7 +103,7 @@
     .cal-cell.other-month { opacity: 0.25; }
     .cal-day-num { font-family:'Syne'; font-size:18px; font-weight:800; margin-bottom:4px; }
     .cal-evt { font-size:12px; font-weight: 800; padding:8px 12px; border-radius:20px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align: center; color: #000 !important; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 3px 6px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-    .cal-evt-time { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; opacity: 0.8; line-height: 1; text-transform: lowercase; }
+    .cal-evt-time { font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 600; opacity: 0.8; line-height: 1; text-transform: lowercase; }
     
     .week-view-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:16px; border-radius:24px; overflow:hidden; margin-top:20px; width: 100%; }
     .week-view-grid > div { background:var(--bg2); padding:24px; min-height: 300px; border: 1px solid var(--border); border-radius: 24px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
@@ -111,32 +111,32 @@
     .week-header.today { background:var(--productive-bg); border-radius: 14px; padding: 8px; border-bottom-color: transparent; color: var(--productive); }
     .week-slot { display: flex; flex-direction: column; gap: 10px; width: 100%; justify-content: center; margin-top: 12px; }
     .week-evt { border-radius:20px; padding:12px 16px; font-size:14px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; display: flex; flex-direction: column; gap: 4px; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 0.5px; }
-    .week-evt-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; opacity: 0.85; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 20px; text-transform: lowercase; }
+    .week-evt-time { font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 600; opacity: 0.85; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 20px; text-transform: lowercase; }
     
     .day-view-grid { display:flex; flex-direction: column; gap:16px; border-radius:24px; margin-top:20px; width: 100%; }
     .day-view-grid > div { background:var(--bg2); padding:40px; border: 1px solid var(--border); border-radius: 24px; text-align: center; width: 100%; }
     .day-slot { display: flex; flex-direction: column; gap: 12px; align-items: center; justify-content: center; width: 100%; margin-top: 20px; }
     .day-evt { border-radius:24px; padding:16px 32px; font-size:17px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; text-transform: uppercase; box-shadow: 0 6px 14px rgba(0,0,0,0.22); letter-spacing: 0.5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
-    .day-evt-time { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; opacity: 0.9; background: rgba(0,0,0,0.12); padding: 4px 14px; border-radius: 20px; text-transform: lowercase; }
+    .day-evt-time { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; opacity: 0.9; background: rgba(0,0,0,0.12); padding: 4px 14px; border-radius: 20px; text-transform: lowercase; }
     
-    .progress-overview { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:25px; width: 100%; }
-    .overview-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:24px; flex:1; text-align: center; min-width: 200px; }
-    .phase-card { background:var(--bg2); border-radius:24px; padding:28px; margin-bottom: 20px; width: 100%; border-left:4px solid var(--primary); }
-    .phase-title { font-weight:800; margin-bottom:16px; display:flex; justify-content:space-between; font-size:18px; }
-    .topic-row { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
-    .topic-name { flex:1; font-weight:600; font-size:15px; }
+    .progress-overview { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:25px; width: 100%; justify-content: center; text-align: center; }
+    .overview-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:24px; flex:1; text-align: center; min-width: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .phase-card { background:var(--bg2); border-radius:24px; padding:28px; margin-bottom: 20px; width: 100%; border-left:4px solid var(--primary); text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .phase-title { font-weight:800; margin-bottom:16px; display:flex; justify-content:space-between; font-size:18px; width: 100%; text-align: center; justify-content: center; gap: 20px; }
+    .topic-row { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; width: 100%; justify-content: center; text-align: center; }
+    .topic-name { font-weight:600; font-size:15px; text-align: center; }
     .topic-status { width:115px; font-size:12px; padding:6px 14px; border-radius:40px; text-align:center; cursor:pointer; background:var(--bg3); font-weight:700; }
     .status-done { background:rgba(45,212,191,0.2); color:#2dd4bf; }
     .status-ongoing { background:rgba(251,191,36,0.2); color:#fbbf24; }
     .status-not { background:rgba(248,113,113,0.2); color:#f87171; }
-    .time-spent { width:85px; background:var(--bg3); border:1px solid var(--border); border-radius:40px; padding:6px 10px; color:white; font-family:'JetBrains Mono'; text-align:center; font-size:14px; }
-    .subtopic-list { margin-left: 28px; margin-top: 5px; padding-left: 12px; border-left: 1px dashed var(--border); }
-    .subtopic-item { display: flex; align-items: center; gap: 12px; padding: 6px 0; font-size: 14px; flex-wrap: wrap; }
-    .sub-status { width: 90px; font-size: 11px; padding: 4px 10px; border-radius: 20px; text-align: center; cursor: pointer; }
-    .ai-suggestion-box { background:var(--bg3); border-radius:24px; padding:24px; margin: 25px 0; width: 100%; border:1px solid var(--primary-border); text-align: center; font-size: 16px; }
-    .resource-link { font-size:12px; color:var(--primary); text-decoration:none; margin-left:8px; }
+    .time-spent { width:85px; background:var(--bg3); border:1px solid var(--border); border-radius:40px; padding:6px 10px; color:white; font-family:'Outfit', sans-serif; font-weight: 600; text-align:center; font-size:14px; }
+    .subtopic-list { margin: 10px 0; padding: 0; border: none; width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .subtopic-item { display: flex; align-items: center; gap: 12px; padding: 6px 0; font-size: 14px; flex-wrap: wrap; width: 100%; justify-content: center; text-align: center; }
+    .sub-status { width: 110px; font-size: 11px; padding: 4px 10px; border-radius: 20px; text-align: center; cursor: pointer; font-weight: 600; }
+    .ai-suggestion-box { background:var(--bg3); border-radius:24px; padding:24px; margin: 25px 0; width: 100%; border:1px solid var(--primary-border); text-align: center; font-size: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .resource-link { font-size:12px; color:var(--primary); text-decoration:none; margin-left:8px; font-weight: bold; }
     .resource-link:hover { text-decoration:underline; }
-    .phase-progress { height:8px; background:var(--bg3); border-radius:6px; margin:10px 0 15px; overflow:hidden; }
+    .phase-progress { height:8px; background:var(--bg3); border-radius:6px; margin:10px 0 15px; overflow:hidden; width: 100%; max-width: 500px; }
     .phase-progress-fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--productive)); border-radius:6px; transition:width 0.3s; }
     
     .side-panel { position:fixed; top:0; right:0; width:400px; height:100vh; background:var(--bg2); border-left:1px solid var(--border); transform:translateX(100%); transition:0.25s; z-index:300; padding:30px; overflow-y:auto; box-shadow: -5px 0 30px rgba(0,0,0,0.6); }
@@ -205,7 +205,7 @@
   <div class="progress-overview" id="progressOverview"></div>
   <div id="phasesContainer"></div>
   <div id="aiProgressAdvice" class="ai-suggestion-box">
-    <div style="font-weight:600; margin-bottom:6px;">🧠 Study recommendation</div>
+    <div style="font-weight:600; margin-bottom:6px;">Study recommendation</div>
     <div id="speedAdviceText">loading...</div>
   </div>
 </div>
@@ -253,14 +253,14 @@ function ensureDay(k) {
 function getTaskColor(name) {
   if (!name) return "#60a5fa";
   const colors = [
-    "#c084fc", "#f472b6", "#60a5fa", "#2dd4bf", 
-    "#fbbf24", "#f87171", "#34d399", "#f97316",
-    "#38bdf8", "#ec4899", "#fb923c", "#a78bfa"
+    "#c084fc", "#f472b6", "#60a5fa", "#2dd4bf", "#fbbf24", "#f87171", 
+    "#34d399", "#f97316", "#38bdf8", "#ec4899", "#fb923c", "#a78bfa",
+    "#22d3ee", "#f43f5e", "#10b981", "#84cc16", "#06b6d4", "#e11d48"
   ];
-  let hash = 13;
+  let hash = 17;
   let normalName = name.trim().toLowerCase();
   for (let i = 0; i < normalName.length; i++) {
-    hash = (hash * 37) + normalName.charCodeAt(i);
+    hash = (hash * 41) + normalName.charCodeAt(i);
   }
   return colors[Math.abs(hash) % colors.length];
 }
@@ -327,28 +327,28 @@ function parseNaturalEvent(text) {
 function buildRoadmap() {
   return [
     { id:"phase1", name:"Phase 1: Foundations (Jun 12 - Jul 9)", totalTarget:110, topics:[
-      { name:"📘 Book of Proof (Hammack)", target:40, subtopics:["Ch1-3: Sets & Logic","Ch4-6: Direct Proofs","Ch7-9: Induction & Contradiction","Ch10-13: Functions & Cardinality"], links:["https://www.people.vcu.edu/~rhammack/BookOfProof/"] },
-      { name:"📐 Calculus (Stewart + Paul's + MIT 18.02)", target:25, subtopics:["AA HL Review (skip)","Multivariable: Partial Derivatives","Gradients & Optimization","Multiple Integrals","Line Integrals"], links:["https://tutorial.math.lamar.edu/","https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] },
-      { name:"🐍 Python Fluency (CS50P + Automate)", target:15, subtopics:["CS50P Week 0-3","OOP & Error Handling","File I/O & Regex","Automate Boring Stuff Projects"], links:["https://cs50.harvard.edu/python/2022/","https://automatetheboringstuff.com/"] },
-      { name:"📊 NumPy + Matplotlib", target:15, subtopics:["Arrays & Broadcasting","Indexing & Vectorization","Basic Plots & Customization"], links:["https://numpy.org/learn/","https://matplotlib.org/stable/tutorials/"] },
-      { name:"🐙 Git + GitHub", target:5, subtopics:["Git Branching","Commits & Pull Requests","GitHub Profile Setup"], links:["https://learngitbranching.js.org/"] },
-      { name:"💻 LeetCode Easy (20 problems)", target:15, subtopics:["Arrays & Hashing","Two Pointers","String Manipulation","Basic Recursion"], links:["https://neetcode.io/roadmap","https://leetcode.com/"] }
+      { name:"Book of Proof (Hammack)", target:40, subtopics:["Ch1-3: Sets & Logic","Ch4-6: Direct Proofs","Ch7-9: Induction & Contradiction","Ch10-13: Functions & Cardinality"], links:["https://www.people.vcu.edu/~rhammack/BookOfProof/"] },
+      { name:"Calculus (Stewart + Paul's + MIT 18.02)", target:25, subtopics:["AA HL Review (skip)","Multivariable: Partial Derivatives","Gradients & Optimization","Multiple Integrals","Line Integrals"], links:["https://tutorial.math.lamar.edu/","https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] },
+      { name:"Python Fluency (CS50P + Automate)", target:15, subtopics:["CS50P Week 0-3","OOP & Error Handling","File I/O & Regex","Automate Boring Stuff Projects"], links:["https://cs50.harvard.edu/python/2022/","https://automatetheboringstuff.com/"] },
+      { name:"NumPy + Matplotlib", target:15, subtopics:["Arrays & Broadcasting","Indexing & Vectorization","Basic Plots & Customization"], links:["https://numpy.org/learn/","https://matplotlib.org/stable/tutorials/"] },
+      { name:"Git + GitHub", target:5, subtopics:["Git Branching","Commits & Pull Requests","GitHub Profile Setup"], links:["https://learngitbranching.js.org/"] },
+      { name:"LeetCode Easy (20 problems)", target:15, subtopics:["Arrays & Hashing","Two Pointers","String Manipulation","Basic Recursion"], links:["https://neetcode.io/roadmap","https://leetcode.com/"] }
     ]},
     { id:"phase2", name:"Phase 2: Core Math + Algorithms (Jul 10 - Aug 13)", totalTarget:215, topics:[
-      { name:"🔢 Linear Algebra (Lay + MIT 18.06 + 3B1B)", target:60, subtopics:["Systems & Matrices","Vector Spaces","Eigenvalues & Eigenvectors","SVD & Applications"], links:["https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/","https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"] },
-      { name:"🎲 Probability (Morin + Stat110)", target:40, subtopics:["Counting & Combinatorics","Conditional Probability & Bayes","Expectation & Variance","Distributions & CLT"], links:["https://projects.iq.harvard.edu/stat110/home"] },
-      { name:"🧩 Discrete Math (Rosen / Levin + MIT 6.042J)", target:30, subtopics:["Logic & Proofs","Graph Theory","Number Theory","Combinatorics"], links:["https://discrete.openmathbooks.org/dmoi3.html","https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2010/"] },
-      { name:"⚙️ Data Structures & Algorithms (Neetcode 150)", target:50, subtopics:["Trees & Graphs","Recursion & DP","Sliding Window & Two Pointers","Heaps & Tries"], links:["https://neetcode.io/"] },
-      { name:"📈 LeetCode Medium (30 problems)", target:30, subtopics:["Tree Traversals","BFS/DFS","Dynamic Programming Basics"], links:["https://leetcode.com/"] },
-      { name:"🐼 Pandas + Scipy", target:5, subtopics:["DataFrames & Groupby","Time Series & Stats"], links:["https://pandas.pydata.org/docs/","https://www.kaggle.com/learn/pandas"] }
+      { name:"Linear Algebra (Lay + MIT 18.06 + 3B1B)", target:60, subtopics:["Systems & Matrices","Vector Spaces","Eigenvalues & Eigenvectors","SVD & Applications"], links:["https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/","https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"] },
+      { name:"Probability (Morin + Stat110)", target:40, subtopics:["Counting & Combinatorics","Conditional Probability & Bayes","Expectation & Variance","Distributions & CLT"], links:["https://projects.iq.harvard.edu/stat110/home"] },
+      { name:"Discrete Math (Rosen / Levin + MIT 6.042J)", target:30, subtopics:["Logic & Proofs","Graph Theory","Number Theory","Combinatorics"], links:["https://discrete.openmathbooks.org/dmoi3.html","https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2010/"] },
+      { name:"Data Structures & Algorithms (Neetcode 150)", target:50, subtopics:["Trees & Graphs","Recursion & DP","Sliding Window & Two Pointers","Heaps & Tries"], links:["https://neetcode.io/"] },
+      { name:"LeetCode Medium (30 problems)", target:30, subtopics:["Tree Traversals","BFS/DFS","Dynamic Programming Basics"], links:["https://leetcode.com/"] },
+      { name:"Pandas + Scipy", target:5, subtopics:["DataFrames & Groupby","Time Series & Stats"], links:["https://pandas.pydata.org/docs/","https://www.kaggle.com/learn/pandas"] }
     ]},
     { id:"phase3", name:"Phase 3: ML + Computer Vision (Aug 14 - Sep 8)", totalTarget:155, topics:[
-      { name:"🤖 fast.ai Part 1", target:20, subtopics:["Lesson 1-3: Image Classification","Lesson 4-5: NLP & Tabular","Lesson 6-7: Collaborative Filtering"], links:["https://course.fast.ai/"] },
-      { name:"🧠 Karpathy Zero to Hero", target:30, subtopics:["micrograd","makemore","GPT from Scratch"], links:["https://karpathy.ai/zero-to-hero.html"] },
-      { name:"👁️ OpenCV (LearnOpenCV + Docs)", target:20, subtopics:["Image Basics & Filtering","Edge Detection & Contours","Feature Matching","Object Tracking"], links:["https://learnopencv.com/","https://docs.opencv.org/4.13.0/"] },
-      { name:"🔥 PyTorch Basics (Official Tutorials)", target:15, subtopics:["Tensors & Autograd","Training Loop","Custom Datasets","Transfer Learning"], links:["https://pytorch.org/tutorials/beginner/basics/intro.html","https://pytorch.org/tutorials/"] },
-      { name:"📁 Project 1: CIFAR-10 CNN", target:30, subtopics:["DataLoader & Augmentation","3-Layer CNN","Training & Evaluation","Confusion Matrix"], links:[] },
-      { name:"📐 Multivariable Calc (MIT 18.02 Review)", target:25, subtopics:["Partial Derivatives & Gradients","Optimization","Jacobian & Hessian"], links:["https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] }
+      { name:"fast.ai Part 1", target:20, subtopics:["Lesson 1-3: Image Classification","Lesson 4-5: NLP & Tabular","Lesson 6-7: Collaborative Filtering"], links:["https://course.fast.ai/"] },
+      { name:"Karpathy Zero to Hero", target:30, subtopics:["micrograd","makemore","GPT from Scratch"], links:["https://karpathy.ai/zero-to-hero.html"] },
+      { name:"OpenCV (LearnOpenCV + Docs)", target:20, subtopics:["Image Basics & Filtering","Edge Detection & Contours","Feature Matching","Object Tracking"], links:["https://learnopencv.com/","https://docs.opencv.org/4.13.0/"] },
+      { name:"PyTorch Basics (Official Tutorials)", target:15, subtopics:["Tensors & Autograd","Training Loop","Custom Datasets","Transfer Learning"], links:["https://pytorch.org/tutorials/beginner/basics/intro.html","https://pytorch.org/tutorials/"] },
+      { name:"Project 1: CIFAR-10 CNN", target:30, subtopics:["DataLoader & Augmentation","3-Layer CNN","Training & Evaluation","Confusion Matrix"], links:[] },
+      { name:"Multivariable Calc (MIT 18.02 Review)", target:25, subtopics:["Partial Derivatives & Gradients","Optimization","Jacobian & Hessian"], links:["https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] }
     ]}
   ];
 }
@@ -423,8 +423,8 @@ function renderProgressSection() {
     
     for(let t of phaseTopics) {
       let statusClass = t.status==="done"?"status-done":t.status==="ongoing"?"status-ongoing":"status-not";
-      let statusText = t.status==="done"?"✓ Done":t.status==="ongoing"?"⏳ Ongoing":"○ Not Started";
-      let linksHtml = t.links.map(l=>'<a href="' + l + '" target="_blank" class="resource-link">🔗</a>').join("");
+      let statusText = t.status==="done"?"Done":t.status==="ongoing"?"Ongoing":"Not Started";
+      let linksHtml = t.links.map(l=>'<a href="' + l + '" target="_blank" class="resource-link">Resources</a>').join("");
       
       html += '<div class="topic-row"><div class="topic-name">' + t.topic + ' ' + linksHtml + '</div>';
       html += '<div class="topic-status ' + statusClass + '" onclick="cycleTopicStatus(\'' + t.id + '\')">' + statusText + '</div>';
@@ -435,8 +435,8 @@ function renderProgressSection() {
         html += '<div class="subtopic-list">';
         t.subtopics.forEach((sub,idx)=>{
           let subStatus = sub.status==="done"?"status-done":sub.status==="ongoing"?"status-ongoing":"status-not";
-          let subLabel = sub.status==="done"?"✓":sub.status==="ongoing"?"⏳":"○";
-          html += '<div class="subtopic-item"><div class="sub-status ' + subStatus + '" onclick="cycleSubStatus(\'' + t.id + '\',' + idx + ')">' + subLabel + ' ' + sub.name + '</div>';
+          let subLabel = sub.status==="done"?"Done":sub.status==="ongoing"?"Ongoing":"Not Started";
+          html += '<div class="subtopic-item"><div class="sub-status ' + subStatus + '" onclick="cycleSubStatus(\'' + t.id + '\',' + idx + ')">' + subLabel + ' - ' + sub.name + '</div>';
           html += '<input type="number" step="0.5" value="' + Math.round(sub.spentHours*10)/10 + '" style="width:70px" class="time-spent" onchange="updateSubHours(\'' + t.id + '\',' + idx + ',this.value)">';
           html += '<span style="font-size:10px; color:var(--text3)">/' + sub.targetHours + 'h</span></div>';
         });
@@ -453,11 +453,11 @@ function renderProgressSection() {
   let nextTopic = incomplete.length ? incomplete[0].topic : "All topics completed!";
   
   if(stats.dailyNeeded > stats.actualPace + 0.5) 
-    advice = '⚠️ To finish by Sep 8 you need ~' + stats.dailyNeeded.toFixed(1) + 'h/day (current ' + stats.actualPace.toFixed(1) + 'h/day). Focus next on: <strong>' + nextTopic + '</strong>.';
+    advice = 'To finish by Sep 8 you need ~' + stats.dailyNeeded.toFixed(1) + 'h/day (current ' + stats.actualPace.toFixed(1) + 'h/day). Focus next on: <strong>' + nextTopic + '</strong>.';
   else if(stats.dailyNeeded <= stats.actualPace) 
-    advice = '✅ Great pace! Keep going. Next recommended: <strong>' + nextTopic + '</strong>.';
+    advice = 'Great pace! Keep going. Next recommended: <strong>' + nextTopic + '</strong>.';
   else 
-    advice = '📌 Try to complete <strong>' + nextTopic + '</strong> next. You need ' + stats.dailyNeeded.toFixed(1) + 'h/day.';
+    advice = 'Try to complete <strong>' + nextTopic + '</strong> next. You need ' + stats.dailyNeeded.toFixed(1) + 'h/day.';
   
   document.getElementById("speedAdviceText").innerHTML = advice;
 }
@@ -551,7 +551,7 @@ async function loadFromCloud(){
 
 function getWeekDates(base){
   let d=new Date(base); let dow=d.getDay(); let mon=new Date(d); mon.setDate(d.getDate()-(dow===0?6:dow-1));
-  return Array.from({length:7},(_,i)=>{ let x=new Date(mon); x.setDate(mon.getDate()+i); return x; });
+  return Array.from({length:7},(_, i)=>{ let x=new Date(mon); x.setDate(mon.getDate()+i); return x; });
 }
 
 function renderTasks(){
@@ -569,10 +569,12 @@ function renderTasks(){
   let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
   let isToday=k===todayKey();
   
+  let titleString = isToday ? 'TODAY' : d.toLocaleDateString('en-GB',{ weekday:'long' });
+  
   let card=document.createElement("div"); 
   card.className="day-card open"; 
   card.id="card-"+k;
-  card.innerHTML='<div class="card-header"><div class="badge '+(isToday?'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+d.toLocaleDateString('en-GB',{ weekday:'long', month:'short', day:'numeric' })+' '+(isToday?'· today':'')+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
+  card.innerHTML='<div class="card-header"><div class="badge '+(isToday?'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+titleString+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
   container.appendChild(card);
   renderDayTasks(k); 
   renderDayEvents(k); 
@@ -607,7 +609,7 @@ function renderDayTasks(k){
       '<div class="duration-inputs">'+
         '<input type="number" id="durH-'+k+'-'+i+'" placeholder="h" value="'+displayHours+'" class="dur-num" style="width:36px" step="1" min="0">'+
         '<span>:</span>'+
-        '<input type="number" id="durM-'+k+'-'+i+'" placeholder="m" value="'+displayMins+'" class="dur-num" style="width:36px" step="5" min="0" max="55">'+
+        '<input type="number" id="durM-'+k+'-'+i+'" placeholder="m" value="' + displayMins + '" class="dur-num" style="width:36px" step="5" min="0" max="55">'+
         '<button class="log-time-btn" onclick="logTaskTime(\''+k+'\','+i+')">log</button>'+
       '</div>'+
       '<span class="task-duration">'+durText+'</span>'+
@@ -849,7 +851,7 @@ function executeDeterministicPlan(inputElement, responseElement) {
     });
     scheduleSync(); 
     fullRender();
-    responseElement.innerHTML = `✓ Added event "<strong>${escapeHtml(parsed.title)}</strong>" (${formatDisplayTime(parsed.start)} - ${formatDisplayTime(parsed.end)}) to ${parsed.dateKey}`;
+    responseElement.innerHTML = `Added event "<strong>${escapeHtml(parsed.title)}</strong>" (${formatDisplayTime(parsed.start)} - ${formatDisplayTime(parsed.end)}) to ${parsed.dateKey}`;
     inputElement.value = "";
   } else {
     let targetKey = dkey(currentFocusDate);
@@ -857,7 +859,7 @@ function executeDeterministicPlan(inputElement, responseElement) {
     DB[targetKey].tasks.push({text: inp, done: false, type: "productive", prio: "mid", timeSpent: 0});
     scheduleSync();
     renderTasks();
-    responseElement.innerHTML = `✓ Added task "<strong>${escapeHtml(inp)}</strong>" to layout dashboard.`;
+    responseElement.innerHTML = `Added task "<strong>${escapeHtml(inp)}</strong>" to layout dashboard.`;
     inputElement.value = "";
   }
 }
