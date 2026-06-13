@@ -268,7 +268,7 @@ function getTaskColor(name) {
     "#34d399", "#f97316", "#38bdf8", "#ec4899", "#fb923c", "#a78bfa",
     "#00f0ff", "#adff2f", "#39ff14", "#fffb00", "#ff6c00", "#ff007f",
     "#ff00ff", "#64dfdf", "#80ffdb", "#ffb3c1", "#ff758f", "#ffe494",
-    "#171d2c", "#ff8fa3", "#00f5d4", "#fee440", "#7befb2", "#a2d2ff",
+    "#2a3350", "#ff8fa3", "#00f5d4", "#fee440", "#7befb2", "#a2d2ff",
     "#ffafcc", "#ffc8dd"
   ];
   let hash = 17;
@@ -408,7 +408,6 @@ function recalcTopicProgress(topic) {
   topic.spentHours = totalSpent;
   let allDone = topic.subtopics.every(s=>s.status==="done");
   let allNot = topic.subtopics.every(s=>s.status==="not started");
-  
   if(allDone) {
     topic.status = "done";
   } else if(allNot && totalSpent === 0) {
@@ -443,6 +442,19 @@ function computeLoggedStats() {
   }
   
   return { weeklyTotal, monthlyTotal };
+}
+
+function recomputeProgress() {
+  let totalSpent = ROADMAP.reduce((s,t)=>s+t.spentHours,0);
+  let totalTarget = ROADMAP.reduce((s,t)=>s+t.targetHours,0);
+  let completedTopics = ROADMAP.filter(t=>t.status==="done").length;
+  let percent = totalTarget>0 ? (totalSpent/totalTarget)*100 : 0;
+  let remaining = Math.max(0, totalTarget - totalSpent);
+  let daysLeft = Math.max(1, (new Date(2026,8,8) - new Date())/(1000*3600*24));
+  let dailyNeeded = remaining/daysLeft;
+  let daysPassed = Math.max(1, (new Date() - new Date(2026,5,12))/(1000*3600*24));
+  let actualPace = totalSpent/daysPassed;
+  return { totalSpent, totalTarget, completedTopics, totalTopics:ROADMAP.length, percent, remaining, dailyNeeded, actualPace };
 }
 
 function renderProgressSection() {
@@ -499,14 +511,7 @@ function renderProgressSection() {
   let incomplete = ROADMAP.filter(t=>t.status!=="done").slice(0,2);
   let nextTopic = incomplete.length ? incomplete[0].topic : "All topics completed!";
   
-  let advice = 'Recommended Focus: <strong>' + nextTopic + '</strong>.';
-  document.getElementById("speedAdviceText").innerHTML = advice;
-  
-  let targetEnd = new Date(2026, 8, 8);
-  let currentMoment = new Date();
-  let remainingDays = Math.max(1, Math.ceil((targetEnd - currentMoment) / (1000 * 60 * 60 * 24)));
-  let remainingHours = Math.max(0, stats.totalTarget - stats.totalSpent);
-  let avgNeededToFinish = remainingHours / remainingDays;
+  document.getElementById("speedAdviceText").innerHTML = 'Recommended Focus: <strong>' + nextTopic + '</strong>.';
   
   document.getElementById("statsMatrixGrid").innerHTML = `
     <div class="stats-matrix-pill">
@@ -518,7 +523,7 @@ function renderProgressSection() {
       <div class="stats-matrix-lbl">Avg hrs this month</div>
     </div>
     <div class="stats-matrix-pill">
-      <div class="stats-matrix-val">${avgNeededToFinish.toFixed(1)}h/day</div>
+      <div class="stats-matrix-val">${stats.dailyNeeded.toFixed(1)}h/day</div>
       <div class="stats-matrix-lbl">Avg hrs needed to finish</div>
     </div>
   `;
@@ -539,7 +544,6 @@ function cycleTopicStatus(id){
     renderProgressSection(); 
   } 
 }
-
 function updateTopicHours(id,val){ 
   let t=ROADMAP.find(x=>x.id===id); 
   if(t){ 
@@ -548,7 +552,6 @@ function updateTopicHours(id,val){
     renderProgressSection(); 
   } 
 }
-
 function cycleSubStatus(topicId, subIdx){ 
   let t=ROADMAP.find(x=>x.id===topicId); 
   if(t && t.subtopics[subIdx]){ 
@@ -565,7 +568,6 @@ function cycleSubStatus(topicId, subIdx){
     renderProgressSection(); 
   } 
 }
-
 function updateSubHours(topicId, subIdx, val){ 
   let t=ROADMAP.find(x=>x.id===topicId); 
   if(t && t.subtopics[subIdx]){ 
@@ -744,6 +746,7 @@ function cycleTaskType(k,i){
   updatePills(k); 
 }
 
+// prioritize task levels
 function cyclePrio(k,i){ 
   let m={high:"mid",mid:"low",low:"high"}; 
   DB[k].tasks[i].prio=m[DB[k].tasks[i].prio]; 
@@ -865,6 +868,42 @@ function renderMonthView(container) {
   
   html += '</div></div>';
   document.getElementById("monthYearLabel").innerHTML=`${first.toLocaleString('default',{month:'long'})} ${year}`;
+  container.innerHTML = html;
+}
+
+function renderWeekView(container) {
+  let weekDates = getWeekDates(currentCalMonth);
+  let html = '<div class="week-view-grid">';
+  
+  weekDates.forEach(d => {
+    let k = dkey(d);
+    let isT = k === todayKey();
+    let events = DB[k]?.events || [];
+    
+    let sortedEvents = events.map((e, idx) => ({ ...e, originalIndex: idx }));
+    sortedEvents.sort((a,b) => a.start.localeCompare(b.start));
+
+    html += '<div onclick="openSidePanel(\''+k+'\')">';
+    html += '<div class="week-header '+(isT?'today':'')+'">' + d.toLocaleDateString('en-GB',{weekday:'short', day:'numeric'}) + '</div>';
+    html += '<div class="week-slot">';
+    
+    if(sortedEvents.length === 0) {
+      html += '<div style="color:var(--text3); font-size:12px; text-align:center; margin-top:20px;">No events</div>';
+    } else {
+      sortedEvents.forEach(e => {
+        html += `<div class="week-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 24px;">
+                  ${escapeHtml(e.title)}
+                  <span class="week-evt-time">${formatDisplayTime(e.start)} - ${formatDisplayTime(e.end)}</span>
+                  <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 12px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${e.originalIndex});">✕</span>
+                </div>`;
+      });
+    }
+    
+    html += '</div></div>';
+  });
+  
+  html += '</div>';
+  document.getElementById("monthYearLabel").innerHTML = 'Week of ' + weekDates[0].toLocaleDateString('en-GB',{month:'short', day:'numeric'});
   container.innerHTML = html;
 }
 
