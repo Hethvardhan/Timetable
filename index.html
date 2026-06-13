@@ -46,9 +46,6 @@
     .nav-btn:hover, .nav-btn.active { border-color:var(--primary); background:var(--primary-bg); color: var(--primary); }
     .day-label { font-family:'Syne',sans-serif; font-weight:800; font-size:24px; margin: 0 20px; text-align: center; color: var(--text); letter-spacing: -0.5px; }
     
-    .mode-group { display:none; }
-    .week-strip { display:none; }
-    
     .ai-bar { background:var(--bg2); border:1px solid var(--primary-border); border-radius:60px; padding:10px 16px 10px 28px; display:flex; gap:14px; margin: 20px 0; width: 100%; }
     .ai-input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:15px; }
     .ai-bar:focus-within { border-color: var(--primary); }
@@ -232,8 +229,8 @@
       <input type="time" id="panelEnd" class="add-input">
     </div>
     <div style="display:flex; gap:6px; margin:10px 0; justify-content: center;">
-      <button class="nav-btn" style="flex:1" onclick="setPanelType('hangout')">Fun</button>
-      <button class="nav-btn" style="flex:1" onclick="setPanelType('study')">Study</button>
+      <button class="nav-btn" style="flex:1" onclick="setPanelType('hangout')">🎉 Fun</button>
+      <button class="nav-btn" style="flex:1" onclick="setPanelType('study')">📚 Study</button>
     </div>
     <button class="nav-btn" style="width:100%; border-color: var(--productive); color: var(--productive);" onclick="addPanelEvent()">+ Add Event</button>
     <div id="panelEventsList" style="margin-top:12px"></div>
@@ -462,8 +459,8 @@ function renderProgressSection() {
   let loggedActivity = computeLoggedStats();
   
   document.getElementById("progressOverview").innerHTML = 
-    '<div class="overview-card"><div class="stat-num" style="color:var(--primary)">' + Math.round(stats.totalSpent) + 'h</div><div class="stat-label">hours spent</div></div>' +
-    '<div class="overview-card"><div class="stat-num" style="color:var(--productive)">' + stats.totalTarget + 'h</div><div class="stat-label">total target</div></div>' +
+    '<div class="overview-card"><div class="stat-num">' + Math.round(stats.totalSpent) + 'h</div><div class="stat-label">hours spent</div></div>' +
+    '<div class="overview-card"><div class="stat-num">' + stats.totalTarget + 'h</div><div class="stat-label">total target</div></div>' +
     '<div class="overview-card"><div class="stat-num">' + Math.round(stats.percent) + '%</div><div class="stat-label">progress</div></div>' +
     '<div class="overview-card"><div class="stat-num">' + stats.completedTopics + '/' + stats.totalTopics + '</div><div class="stat-label">topics done</div></div>';
   
@@ -647,7 +644,7 @@ function renderTasks(){
   let card=document.createElement("div"); 
   card.className="day-card open"; 
   card.id="card-"+k;
-  card.innerHTML='<div class="card-header"><div class="badge '+((k===todayKey())? 'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+titleString+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">Productive</option><option value="nonproductive">Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">High</option><option value="mid" selected>Mid</option><option value="low">Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
+  card.innerHTML='<div class="card-header"><div class="badge '+((k===todayKey())? 'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+titleString+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
   container.appendChild(card);
   renderDayTasks(k); 
   renderDayEvents(k); 
@@ -662,9 +659,9 @@ function renderDayTasks(k){
   
   tasks.forEach((t,i)=>{
     let typeClass=t.type==="productive"?"type-prod":"type-nonprod";
-    let typeLabel=t.type==="productive"?"Productive":"Non-prod";
+    let typeLabel=t.type==="productive"?"⚡ Productive":"🌀 Non-prod";
     let prioClass=t.prio==="high"?"prio-high":t.prio==="low"?"prio-low":"prio-mid";
-    let prioLabel=t.prio==="high"?"HIGH":t.prio==="low"?"LOW":"MID";
+    let prioLabel=t.prio==="high"?"🔴 HIGH":t.prio==="low"?"🟢 LOW":"🟡 MID";
     let totalMinutes = t.timeSpent || 0;
     let displayHours = Math.floor(totalMinutes/60);
     let displayMins = totalMinutes%60;
@@ -709,7 +706,7 @@ function updatePills(k){
   let tasks=DB[k].tasks||[]; 
   let prod=tasks.filter(t=>t.type==="productive"&&!t.done).length; 
   let non=tasks.filter(t=>t.type==="nonproductive"&&!t.done).length; 
-  pills.innerHTML=`${prod?'<span class="pill pill-prod">Productive: '+prod+'</span>':''}${non?'<span class="pill pill-non">Non-productive: '+non+'</span>':''}`; 
+  pills.innerHTML=`${prod?'<span class="pill pill-prod">⚡ Productive: '+prod+'</span>':''}${non?'<span class="pill pill-non">🌀 Non-prod: '+non+'</span>':''}`; 
 }
 
 function addTaskFromInput(k){ 
