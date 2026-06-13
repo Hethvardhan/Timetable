@@ -256,7 +256,7 @@ function getTaskColor(name) {
     "#34d399", "#f97316", "#38bdf8", "#ec4899", "#fb923c", "#a78bfa",
     "#00f0ff", "#adff2f", "#39ff14", "#fffb00", "#ff6c00", "#ff007f",
     "#ff00ff", "#64dfdf", "#80ffdb", "#ffb3c1", "#ff758f", "#ffe494",
-    --bg5, "#ff8fa3", "#00f5d4", "#fee440", "#7befb2", "#a2d2ff",
+    "#171d2c", "#ff8fa3", "#00f5d4", "#fee440", "#7befb2", "#a2d2ff",
     "#ffafcc", "#ffc8dd"
   ];
   let hash = 17;
@@ -581,7 +581,7 @@ function renderTasks(){
   let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
   let isToday=k===todayKey();
   
-let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });  
+  let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
   
   let card=document.createElement("div"); 
   card.className="day-card open"; 
