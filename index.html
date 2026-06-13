@@ -81,7 +81,7 @@
     .task-type { font-size:10px; padding:6px 12px; border-radius:30px; cursor:pointer; font-weight:700; text-transform:uppercase; }
     .type-prod { background:var(--productive-bg); color:var(--productive); }
     .type-nonprod { background:var(--nonprod-bg); color:var(--nonprod); }
-    .prio-badge { font-size:10px; padding:5px 12px; border-radius:40px; cursor:pointer; font-weight:700; }
+    .prio-badge { font-size:10px; padding:5px 12px; border-radius:40px; cursor:pointer; font-weight:700; text-transform:uppercase; }
     .prio-high { background:rgba(248,113,113,0.2); color:var(--high); }
     .prio-mid { background:rgba(251,191,36,0.2); color:var(--mid); }
     .prio-low { background:rgba(45,212,191,0.2); color:var(--low); }
@@ -232,8 +232,8 @@
       <input type="time" id="panelEnd" class="add-input">
     </div>
     <div style="display:flex; gap:6px; margin:10px 0">
-      <button class="nav-btn" style="flex:1" onclick="setPanelType('hangout')">🎉 Fun</button>
-      <button class="nav-btn" style="flex:1" onclick="setPanelType('study')">📚 Study</button>
+      <button class="nav-btn" style="flex:1" onclick="setPanelType('hangout')">Fun</button>
+      <button class="nav-btn" style="flex:1" onclick="setPanelType('study')">Study</button>
     </div>
     <button class="nav-btn" style="width:100%; border-color: var(--productive); color: var(--productive);" onclick="addPanelEvent()">+ Add Event</button>
     <div id="panelEventsList" style="margin-top:12px"></div>
@@ -647,7 +647,7 @@ function renderTasks(){
   let card=document.createElement("div"); 
   card.className="day-card open"; 
   card.id="card-"+k;
-  card.innerHTML='<div class="card-header"><div class="badge '+((k===todayKey())? 'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+titleString+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
+  card.innerHTML='<div class="card-header"><div class="badge '+((k===todayKey())? 'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+titleString+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">Productive</option><option value="nonproductive">Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">High</option><option value="mid" selected>Mid</option><option value="low">Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
   container.appendChild(card);
   renderDayTasks(k); 
   renderDayEvents(k); 
@@ -662,9 +662,9 @@ function renderDayTasks(k){
   
   tasks.forEach((t,i)=>{
     let typeClass=t.type==="productive"?"type-prod":"type-nonprod";
-    let typeLabel=t.type==="productive"?"⚡ Productive":"🌀 Non-prod";
+    let typeLabel=t.type==="productive"?"Productive":"Non-prod";
     let prioClass=t.prio==="high"?"prio-high":t.prio==="low"?"prio-low":"prio-mid";
-    let prioLabel=t.prio==="high"?"🔴 HIGH":t.prio==="low"?"🟢 LOW":"🟡 MID";
+    let prioLabel=t.prio==="high"?"HIGH":t.prio==="low"?"LOW":"MID";
     let totalMinutes = t.timeSpent || 0;
     let displayHours = Math.floor(totalMinutes/60);
     let displayMins = totalMinutes%60;
@@ -709,7 +709,7 @@ function updatePills(k){
   let tasks=DB[k].tasks||[]; 
   let prod=tasks.filter(t=>t.type==="productive"&&!t.done).length; 
   let non=tasks.filter(t=>t.type==="nonproductive"&&!t.done).length; 
-  pills.innerHTML=`${prod?'<span class="pill pill-prod">⚡ '+prod+'</span>':''}${non?'<span class="pill pill-non">🌀 '+non+'</span>':''}`; 
+  pills.innerHTML=`${prod?'<span class="pill pill-prod">Productive: '+prod+'</span>':''}${non?'<span class="pill pill-non">Non-productive: '+non+'</span>':''}`; 
 }
 
 function addTaskFromInput(k){ 
@@ -746,7 +746,6 @@ function cycleTaskType(k,i){
   updatePills(k); 
 }
 
-// prioritize task levels
 function cyclePrio(k,i){ 
   let m={high:"mid",mid:"low",low:"high"}; 
   DB[k].tasks[i].prio=m[DB[k].tasks[i].prio]; 
@@ -868,42 +867,6 @@ function renderMonthView(container) {
   
   html += '</div></div>';
   document.getElementById("monthYearLabel").innerHTML=`${first.toLocaleString('default',{month:'long'})} ${year}`;
-  container.innerHTML = html;
-}
-
-function renderWeekView(container) {
-  let weekDates = getWeekDates(currentCalMonth);
-  let html = '<div class="week-view-grid">';
-  
-  weekDates.forEach(d => {
-    let k = dkey(d);
-    let isT = k === todayKey();
-    let events = DB[k]?.events || [];
-    
-    let sortedEvents = events.map((e, idx) => ({ ...e, originalIndex: idx }));
-    sortedEvents.sort((a,b) => a.start.localeCompare(b.start));
-
-    html += '<div onclick="openSidePanel(\''+k+'\')">';
-    html += '<div class="week-header '+(isT?'today':'')+'">' + d.toLocaleDateString('en-GB',{weekday:'short', day:'numeric'}) + '</div>';
-    html += '<div class="week-slot">';
-    
-    if(sortedEvents.length === 0) {
-      html += '<div style="color:var(--text3); font-size:12px; text-align:center; margin-top:20px;">No events</div>';
-    } else {
-      sortedEvents.forEach(e => {
-        html += `<div class="week-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 24px;">
-                  ${escapeHtml(e.title)}
-                  <span class="week-evt-time">${formatDisplayTime(e.start)} - ${formatDisplayTime(e.end)}</span>
-                  <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 12px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${e.originalIndex});">✕</span>
-                </div>`;
-      });
-    }
-    
-    html += '</div></div>';
-  });
-  
-  html += '</div>';
-  document.getElementById("monthYearLabel").innerHTML = 'Week of ' + weekDates[0].toLocaleDateString('en-GB',{month:'short', day:'numeric'});
   container.innerHTML = html;
 }
 
