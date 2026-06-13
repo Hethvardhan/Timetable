@@ -43,19 +43,12 @@
     .date-nav { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:15px; margin:20px 0; width: 100%; }
     .nav-group { display:flex; gap:12px; align-items:center; margin: 0 auto; justify-content: center; flex-wrap: wrap; }
     .nav-btn { background:var(--bg2); border:1px solid var(--border); border-radius:40px; padding:10px 22px; font-size:14px; font-weight: 600; cursor:pointer; transition:0.2s; color:var(--primary); text-transform: uppercase; letter-spacing: 0.3px; }
-    .nav-btn:hover { border-color:var(--primary); background:var(--primary-bg); }
+    .nav-btn:hover, .nav-btn.active { border-color:var(--primary); background:var(--primary-bg); color: var(--primary); }
     .day-label { font-family:'Syne',sans-serif; font-weight:800; font-size:24px; margin: 0 20px; text-align: center; color: var(--text); letter-spacing: -0.5px; }
     
-    .mode-group { display:flex; gap:6px; }
-    .mode { background:var(--bg2); border:1px solid var(--border); border-radius:40px; padding:8px 18px; font-size:13px; font-weight: 600; cursor:pointer; color:var(--text2); }
-    .mode.active { background:var(--primary-bg); border-color:var(--primary); color:var(--primary); }
-    .week-strip { display:grid; grid-template-columns:repeat(7,1fr); gap:10px; margin-bottom:20px; width: 100%; }
-    .strip-cell { background:var(--bg2); border:1px solid var(--border); border-radius:18px; text-align:center; padding:12px 6px; cursor:pointer; transition: 0.2s; }
-    .strip-cell:hover { border-color: var(--primary); }
-    .strip-cell.today { border-color:var(--productive); background: var(--productive-bg); }
-    .strip-day { font-size:11px; color:var(--text3); text-transform:uppercase; font-weight: 700; }
-    .strip-date { font-family:'Syne'; font-weight:800; font-size:18px; color: var(--text); margin-top: 2px; }
-
+    .mode-group { display:none; }
+    .week-strip { display:none; }
+    
     .ai-bar { background:var(--bg2); border:1px solid var(--primary-border); border-radius:60px; padding:10px 16px 10px 28px; display:flex; gap:14px; margin: 20px 0; width: 100%; }
     .ai-input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:15px; }
     .ai-bar:focus-within { border-color: var(--primary); }
@@ -113,7 +106,7 @@
     .cal-cell.today { background:var(--primary-bg); border: 1.5px solid var(--primary); }
     .cal-cell.other-month { opacity: 0.25; }
     .cal-day-num { font-family:'Syne'; font-size:18px; font-weight:800; margin-bottom:4px; }
-    .cal-evt { font-size:12px; font-weight: 800; padding:8px 12px; border-radius:20px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align: center; color: #000 !important; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 3px 6px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+    .cal-evt { font-size:12px; font-weight: 800; padding:8px 12px; border-radius:20px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align: center; color: #000 !important; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 3px 6px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; position: relative; }
     .cal-evt-time { font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 700; opacity: 0.85; line-height: 1; text-transform: lowercase; }
     
     .week-view-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:16px; border-radius:24px; overflow:hidden; margin-top:20px; width: 100%; }
@@ -121,13 +114,13 @@
     .week-header { font-family:'Syne'; font-weight:800; font-size:18px; text-align:center; border-bottom: 1px solid var(--border); width: 100%; padding-bottom: 12px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
     .week-header.today { background:var(--productive-bg); border-radius: 14px; padding: 8px; border-bottom-color: transparent; color: var(--productive); }
     .week-slot { display: flex; flex-direction: column; gap: 10px; width: 100%; justify-content: center; margin-top: 12px; }
-    .week-evt { border-radius:20px; padding:12px 16px; font-size:14px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; display: flex; flex-direction: column; gap: 4px; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .week-evt { border-radius:20px; padding:12px 16px; font-size:14px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; display: flex; flex-direction: column; gap: 4px; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 0.5px; position: relative; }
     .week-evt-time { font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 600; opacity: 0.85; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 20px; text-transform: lowercase; }
     
     .day-view-grid { display:flex; flex-direction: column; gap:16px; border-radius:24px; margin-top:20px; width: 100%; }
     .day-view-grid > div { background:var(--bg2); padding:40px; border: 1px solid var(--border); border-radius: 24px; text-align: center; width: 100%; }
     .day-slot { display: flex; flex-direction: column; gap: 12px; align-items: center; justify-content: center; width: 100%; margin-top: 20px; }
-    .day-evt { border-radius:24px; padding:16px 32px; font-size:17px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; text-transform: uppercase; box-shadow: 0 6px 14px rgba(0,0,0,0.22); letter-spacing: 0.5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+    .day-evt { border-radius:24px; padding:16px 32px; font-size:17px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; text-transform: uppercase; box-shadow: 0 6px 14px rgba(0,0,0,0.22); letter-spacing: 0.5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; position: relative; }
     .day-evt-time { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; opacity: 0.9; background: rgba(0,0,0,0.12); padding: 4px 14px; border-radius: 20px; text-transform: lowercase; }
     
     .progress-overview { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:25px; width: 100%; justify-content: center; text-align: center; }
@@ -177,14 +170,8 @@
       <button class="nav-btn" id="prevDayBtn">&larr;</button>
       <button class="nav-btn" id="todayTasksBtn">Today</button>
       <button class="nav-btn" id="nextDayBtn">&rarr;</button>
-      <span id="selectedDateLabel" class="day-label"></span>
-    </div>
-    <div class="mode-group">
-      <button class="mode active" id="taskModeDayBtn" onclick="setTaskViewMode('day')">Day</button>
-      <button class="mode" id="taskModeWeekBtn" onclick="setTaskViewMode('week')">Week</button>
     </div>
   </div>
-  <div id="weekStrip" class="week-strip" style="display: none;"></div>
   <div class="ai-bar">
     <input type="text" id="aiTaskInput" class="ai-input" placeholder="Gym from 7:00pm to 8:00pm on 15 June">
     <button class="ai-btn" id="aiTaskRun">Add</button>
@@ -198,13 +185,15 @@
     <div class="nav-group">
       <button class="nav-btn" id="prevMonthBtn">&larr; Month</button>
       <button class="nav-btn" id="prevWeekBtn">&larr; Week</button>
+      <button class="nav-btn" id="prevCalDayBtn">&larr; Day</button>
       <span id="monthYearLabel" class="day-label"></span>
+      <button class="nav-btn" id="nextCalDayBtn">Day &rarr;</button>
       <button class="nav-btn" id="nextWeekBtn">Week &rarr;</button>
       <button class="nav-btn" id="nextMonthBtn">Month &rarr;</button>
       <button class="nav-btn" id="todayCalBtn" style="margin-left: 15px;">Today</button>
     </div>
     <div class="nav-group" style="margin-top: 12px; width: 100%;">
-      <button class="nav-btn" id="calModeMonth" onclick="setCalViewMode('month')">Month View</button>
+      <button class="nav-btn active" id="calModeMonth" onclick="setCalViewMode('month')">Month View</button>
       <button class="nav-btn" id="calModeWeek" onclick="setCalViewMode('week')">Week View</button>
       <button class="nav-btn" id="calModeDay" onclick="setCalViewMode('day')">Day View</button>
     </div>
@@ -237,7 +226,7 @@
     </div>
     <div style="display:flex; gap:6px; margin:10px 0">
       <button class="nav-btn" style="flex:1" onclick="setPanelType('hangout')">🎉 Fun</button>
-      <button class="nav-btn" style="flex:1" onclick="setPanelType('study')">📚 Study</button>
+      <button class="nav-btn" style="flex:1" onclick="setPanelType('study(')">📚 Study</button>
     </div>
     <button class="nav-btn" style="width:100%; border-color: var(--productive); color: var(--productive);" onclick="addPanelEvent()">+ Add Event</button>
     <div id="panelEventsList" style="margin-top:12px"></div>
@@ -586,43 +575,26 @@ function getWeekDates(base){
 
 function renderTasks(){
   let weekDates=getWeekDates(currentFocusDate);
-  document.getElementById("selectedDateLabel").innerHTML = currentFocusDate.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
-  
-  let strip=document.getElementById("weekStrip");
-  if(viewMode==="week"){ 
-    strip.style.display="grid"; 
-    strip.innerHTML=""; 
-    weekDates.forEach(d=>{ 
-      let isT=dkey(d)===todayKey(); 
-      strip.innerHTML+='<div class="strip-cell '+(isT?'today':'')+'" onclick="setFocusDate(\''+dkey(d)+'\')"><div class="strip-day">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="strip-date">'+d.getDate()+'</div></div>'; 
-    }); 
-  } else { 
-    strip.style.display="none"; 
-  }
-
-  let datesToShow = viewMode==="week" ? weekDates : [currentFocusDate];
   let container=document.getElementById("dayDetailContainer"); 
   container.innerHTML="";
   
-  for(let d of datesToShow){
-    let k=dkey(d); 
-    ensureDay(k);
-    let tasks=DB[k].tasks||[]; 
-    let doneCount=tasks.filter(t=>t.done).length; 
-    let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
-    let isToday=k===todayKey();
-    
-    let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
-    
-    let card=document.createElement("div"); 
-    card.className="day-card open"; 
-    card.id="card-"+k;
-    card.innerHTML='<div class="card-header"><div class="badge '+(isToday?'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+titleString+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
-    container.appendChild(card);
-    renderDayTasks(k); 
-    renderDayEvents(k); 
-    updatePills(k);
-  }
+  let d = currentFocusDate;
+  let k=dkey(d); 
+  ensureDay(k);
+  let tasks=DB[k].tasks||[]; 
+  let doneCount=tasks.filter(t=>t.done).length; 
+  let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
+  
+  let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
+  
+  let card=document.createElement("div"); 
+  card.className="day-card open"; 
+  card.id="card-"+k;
+  card.innerHTML='<div class="card-header"><div class="badge '+((k===todayKey())? 'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+titleString+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
+  container.appendChild(card);
+  renderDayTasks(k); 
+  renderDayEvents(k); 
+  updatePills(k);
 }
 
 function renderDayTasks(k){
@@ -786,6 +758,14 @@ function renderCalendar(){
   let container = document.getElementById("calendarContainer");
   container.innerHTML = "";
   
+  // Toggles arrow layout dynamically based on targeted mode properties
+  document.getElementById("prevMonthBtn").style.display = calViewMode === "month" ? "inline-block" : "none";
+  document.getElementById("nextMonthBtn").style.display = calViewMode === "month" ? "inline-block" : "none";
+  document.getElementById("prevWeekBtn").style.display = calViewMode === "week" ? "inline-block" : "none";
+  document.getElementById("nextWeekBtn").style.display = calViewMode === "week" ? "inline-block" : "none";
+  document.getElementById("prevCalDayBtn").style.display = calViewMode === "day" ? "inline-block" : "none";
+  document.getElementById("nextCalDayBtn").style.display = calViewMode === "day" ? "inline-block" : "none";
+  
   if(calViewMode === "month") {
     renderMonthView(container);
   } else if(calViewMode === "week") {
@@ -931,6 +911,9 @@ function executeDeterministicPlan(inputElement, responseElement) {
 
 function setCalViewMode(mode) {
   calViewMode = mode;
+  document.getElementById("calModeMonth").classList.toggle("active", mode === "month");
+  document.getElementById("calModeWeek").classList.toggle("active", mode === "week");
+  document.getElementById("calModeDay").classList.toggle("active", mode === "day");
   renderCalendar();
 }
 
@@ -1000,6 +983,16 @@ document.getElementById("prevWeekBtn")?.addEventListener("click",()=>{
 
 document.getElementById("nextWeekBtn")?.addEventListener("click",()=>{ 
   currentCalMonth.setDate(currentCalMonth.getDate()+7); 
+  renderCalendar(); 
+});
+
+document.getElementById("prevCalDayBtn")?.addEventListener("click",()=>{ 
+  currentCalMonth.setDate(currentCalMonth.getDate()-1); 
+  renderCalendar(); 
+});
+
+document.getElementById("nextCalDayBtn")?.addEventListener("click",()=>{ 
+  currentCalMonth.setDate(currentCalMonth.getDate()+1); 
   renderCalendar(); 
 });
 
