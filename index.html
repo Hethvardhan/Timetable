@@ -37,6 +37,7 @@
     .stat-row { display:flex; gap:14px; overflow-x:auto; margin-bottom:25px; width: 100%; }
     .stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:16px 24px; text-align: center; flex: 1; min-width: 180px; }
     .stat-num { font-family:'Outfit', sans-serif; font-size:30px; font-weight:700; font-feature-settings:"tnum"; }
+    .stat-card:hover { border-color: var(--primary); }
     .stat-label { font-size:11px; font-family:'Outfit', sans-serif; font-weight: 600; color:var(--text3); text-transform:uppercase; margin-top: 4px; letter-spacing: 0.5px; }
     
     .date-nav { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:15px; margin:20px 0; width: 100%; }
@@ -45,6 +46,16 @@
     .nav-btn:hover { border-color:var(--primary); background:var(--primary-bg); }
     .day-label { font-family:'Syne',sans-serif; font-weight:800; font-size:24px; margin: 0 20px; text-align: center; color: var(--text); letter-spacing: -0.5px; }
     
+    .mode-group { display:flex; gap:6px; }
+    .mode { background:var(--bg2); border:1px solid var(--border); border-radius:40px; padding:8px 18px; font-size:13px; font-weight: 600; cursor:pointer; color:var(--text2); }
+    .mode.active { background:var(--primary-bg); border-color:var(--primary); color:var(--primary); }
+    .week-strip { display:grid; grid-template-columns:repeat(7,1fr); gap:10px; margin-bottom:20px; width: 100%; }
+    .strip-cell { background:var(--bg2); border:1px solid var(--border); border-radius:18px; text-align:center; padding:12px 6px; cursor:pointer; transition: 0.2s; }
+    .strip-cell:hover { border-color: var(--primary); }
+    .strip-cell.today { border-color:var(--productive); background: var(--productive-bg); }
+    .strip-day { font-size:11px; color:var(--text3); text-transform:uppercase; font-weight: 700; }
+    .strip-date { font-family:'Syne'; font-weight:800; font-size:18px; color: var(--text); margin-top: 2px; }
+
     .ai-bar { background:var(--bg2); border:1px solid var(--primary-border); border-radius:60px; padding:10px 16px 10px 28px; display:flex; gap:14px; margin: 20px 0; width: 100%; }
     .ai-input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:15px; }
     .ai-bar:focus-within { border-color: var(--primary); }
@@ -166,8 +177,14 @@
       <button class="nav-btn" id="prevDayBtn">&larr;</button>
       <button class="nav-btn" id="todayTasksBtn">Today</button>
       <button class="nav-btn" id="nextDayBtn">&rarr;</button>
+      <span id="selectedDateLabel" class="day-label"></span>
+    </div>
+    <div class="mode-group">
+      <button class="mode active" id="taskModeDayBtn" onclick="setTaskViewMode('day')">Day</button>
+      <button class="mode" id="taskModeWeekBtn" onclick="setTaskViewMode('week')">Week</button>
     </div>
   </div>
+  <div id="weekStrip" class="week-strip" style="display: none;"></div>
   <div class="ai-bar">
     <input type="text" id="aiTaskInput" class="ai-input" placeholder="Gym from 7:00pm to 8:00pm on 15 June">
     <button class="ai-btn" id="aiTaskRun">Add</button>
@@ -179,7 +196,7 @@
 <div id="calendarView" class="view">
   <div class="date-nav">
     <div class="nav-group">
-      <button class="nav-btn" id="prevMonthBtn" style="display:none;">&larr; Month</button>
+      <button class="nav-btn" id="prevMonthBtn">&larr; Month</button>
       <button class="nav-btn" id="prevWeekBtn">&larr; Week</button>
       <span id="monthYearLabel" class="day-label"></span>
       <button class="nav-btn" id="nextWeekBtn">Week &rarr;</button>
@@ -237,7 +254,6 @@ let calViewMode = "month";
 let panelType = "study";
 let apiKey = null, binId = null;
 let saveTimer = null;
-let hasNavigatedForward = false;
 
 function dkey(d) { 
   return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0'); 
@@ -570,27 +586,43 @@ function getWeekDates(base){
 
 function renderTasks(){
   let weekDates=getWeekDates(currentFocusDate);
+  document.getElementById("selectedDateLabel").innerHTML = currentFocusDate.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
+  
+  let strip=document.getElementById("weekStrip");
+  if(viewMode==="week"){ 
+    strip.style.display="grid"; 
+    strip.innerHTML=""; 
+    weekDates.forEach(d=>{ 
+      let isT=dkey(d)===todayKey(); 
+      strip.innerHTML+='<div class="strip-cell '+(isT?'today':'')+'" onclick="setFocusDate(\''+dkey(d)+'\')"><div class="strip-day">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="strip-date">'+d.getDate()+'</div></div>'; 
+    }); 
+  } else { 
+    strip.style.display="none"; 
+  }
+
+  let datesToShow = viewMode==="week" ? weekDates : [currentFocusDate];
   let container=document.getElementById("dayDetailContainer"); 
   container.innerHTML="";
   
-  let d = currentFocusDate;
-  let k=dkey(d); 
-  ensureDay(k);
-  let tasks=DB[k].tasks||[]; 
-  let doneCount=tasks.filter(t=>t.done).length; 
-  let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
-  let isToday=k===todayKey();
-  
-  let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
-  
-  let card=document.createElement("div"); 
-  card.className="day-card open"; 
-  card.id="card-"+k;
-  card.innerHTML='<div class="card-header"><div class="badge '+(isToday?'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+titleString+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
-  container.appendChild(card);
-  renderDayTasks(k); 
-  renderDayEvents(k); 
-  updatePills(k);
+  for(let d of datesToShow){
+    let k=dkey(d); 
+    ensureDay(k);
+    let tasks=DB[k].tasks||[]; 
+    let doneCount=tasks.filter(t=>t.done).length; 
+    let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
+    let isToday=k===todayKey();
+    
+    let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
+    
+    let card=document.createElement("div"); 
+    card.className="day-card open"; 
+    card.id="card-"+k;
+    card.innerHTML='<div class="card-header"><div class="badge '+(isToday?'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+titleString+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
+    container.appendChild(card);
+    renderDayTasks(k); 
+    renderDayEvents(k); 
+    updatePills(k);
+  }
 }
 
 function renderDayTasks(k){
@@ -902,6 +934,13 @@ function setCalViewMode(mode) {
   renderCalendar();
 }
 
+function setTaskViewMode(mode) {
+  viewMode = mode;
+  document.getElementById("taskModeDayBtn").classList.toggle("active", mode === "day");
+  document.getElementById("taskModeWeekBtn").classList.toggle("active", mode === "week");
+  renderTasks();
+}
+
 function fullRender(){ 
   renderTasks(); 
   renderCalendar(); 
@@ -943,14 +982,14 @@ document.getElementById("todayTasksBtn")?.addEventListener("click",()=>{
 });
 
 document.getElementById("prevMonthBtn")?.addEventListener("click",()=>{ 
+  currentCalMonth.setDate(1); 
   currentCalMonth.setMonth(currentCalMonth.getMonth()-1); 
   renderCalendar(); 
 });
 
 document.getElementById("nextMonthBtn")?.addEventListener("click",()=>{ 
+  currentCalMonth.setDate(1); 
   currentCalMonth.setMonth(currentCalMonth.getMonth()+1);
-  hasNavigatedForward = true;
-  document.getElementById("prevMonthBtn").style.display = "inline-block"; 
   renderCalendar(); 
 });
 
@@ -1023,6 +1062,7 @@ window.cycleSubStatus=cycleSubStatus;
 window.updateSubHours=updateSubHours;
 window.openSidePanel=openSidePanel;
 window.setCalViewMode=setCalViewMode;
+window.setTaskViewMode=setTaskViewMode;
 </script>
 </body>
 </html>
