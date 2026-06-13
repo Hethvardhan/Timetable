@@ -137,7 +137,7 @@
     .resource-link { font-size:12px; color:var(--primary); text-decoration:none; margin-left:8px; font-weight: bold; }
     .resource-link:hover { text-decoration:underline; }
     .phase-progress { height:8px; background:var(--bg3); border-radius:6px; margin:10px 0 15px; overflow:hidden; width: 100%; max-width: 500px; }
-    .phase-progress-fill { height:100%; background:gradient(90deg,var(--primary),var(--productive)); border-radius:6px; transition:width 0.3s; }
+    .phase-progress-fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--productive)); border-radius:6px; transition:width 0.3s; }
     
     .side-panel { position:fixed; top:0; right:0; width:400px; height:100vh; background:var(--bg2); border-left:1px solid var(--border); transform:translateX(100%); transition:0.25s; z-index:300; padding:30px; overflow-y:auto; box-shadow: -5px 0 30px rgba(0,0,0,0.6); }
     .side-panel.open { transform:translateX(0); }
@@ -166,7 +166,6 @@
       <button class="nav-btn" id="prevDayBtn">&larr;</button>
       <button class="nav-btn" id="todayTasksBtn">Today</button>
       <button class="nav-btn" id="nextDayBtn">&rarr;</button>
-      <span id="selectedDateLabel" class="day-label"></span>
     </div>
   </div>
   <div class="ai-bar">
@@ -257,7 +256,7 @@ function getTaskColor(name) {
     "#34d399", "#f97316", "#38bdf8", "#ec4899", "#fb923c", "#a78bfa",
     "#00f0ff", "#adff2f", "#39ff14", "#fffb00", "#ff6c00", "#ff007f",
     "#ff00ff", "#64dfdf", "#80ffdb", "#ffb3c1", "#ff758f", "#ffe494",
-    "#e0aaff", "#ff8fa3", "#00f5d4", "#fee440", "#7befb2", "#a2d2ff",
+    --bg5, "#ff8fa3", "#00f5d4", "#fee440", "#7befb2", "#a2d2ff",
     "#ffafcc", "#ffc8dd"
   ];
   let hash = 17;
@@ -571,8 +570,6 @@ function getWeekDates(base){
 
 function renderTasks(){
   let weekDates=getWeekDates(currentFocusDate);
-  document.getElementById("selectedDateLabel").innerHTML = currentFocusDate.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
-  
   let container=document.getElementById("dayDetailContainer"); 
   container.innerHTML="";
   
@@ -584,7 +581,10 @@ function renderTasks(){
   let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
   let isToday=k===todayKey();
   
-  let titleString = isToday ? 'TODAY' : d.toLocaleDateString('en-GB',{ weekday:'long' });
+  let titleString = d.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
+  if (isToday) {
+    titleString += ' · TODAY';
+  }
   
   let card=document.createElement("div"); 
   card.className="day-card open"; 
@@ -717,7 +717,9 @@ function renderDayEvents(k){
 function deleteEvent(k,i){ 
   DB[k].events.splice(i,1); 
   scheduleSync(); 
-  renderDayEvents(k); 
+  if(document.getElementById("tasksView").classList.contains("active")) {
+    renderDayEvents(k); 
+  }
   renderCalendar(); 
 }
 
@@ -783,7 +785,16 @@ function renderMonthView(container) {
     let k=dkey(d); 
     let events=DB[k]?.events||[]; 
     let isToday=k===todayKey(); 
-    let evHtml=events.slice(0,4).map(e=>'<div class="cal-evt" style="background:'+getTaskColor(e.title)+'">'+escapeHtml(e.title)+'<span class="cal-evt-time">'+formatTimeRange(e.start, e.end)+'</span></div>').join(""); 
+    
+    let evHtml = events.map((e, idx) => {
+      if (idx >= 4) return '';
+      return `<div class="cal-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 22px;">
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; display: block;">${escapeHtml(e.title)}</span>
+                <span class="cal-evt-time">${formatTimeRange(e.start, e.end)}</span>
+                <span style="position: absolute; right: 6px; top: 4px; cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 11px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${idx});">✕</span>
+              </div>`;
+    }).join("");
+    
     html+='<div class="cal-cell '+(isToday?"today":"")+'" onclick="openSidePanel(\''+k+'\')"><div class="cal-day-num">'+day+'</div>'+evHtml+(events.length>4?'<div class="cal-evt" style="background:var(--bg4); color:var(--text2) !important;">+'+(events.length-4)+' more</div>':'')+'</div>'; 
   }
   
@@ -801,17 +812,22 @@ function renderWeekView(container) {
     let isT = k === todayKey();
     let events = DB[k]?.events || [];
     
-    events.sort((a,b) => a.start.localeCompare(b.start));
+    let sortedEvents = events.map((e, idx) => ({ ...e, originalIndex: idx }));
+    sortedEvents.sort((a,b) => a.start.localeCompare(b.start));
 
     html += '<div onclick="openSidePanel(\''+k+'\')">';
     html += '<div class="week-header '+(isT?'today':'')+'">' + d.toLocaleDateString('en-GB',{weekday:'short', day:'numeric'}) + '</div>';
     html += '<div class="week-slot">';
     
-    if(events.length === 0) {
+    if(sortedEvents.length === 0) {
       html += '<div style="color:var(--text3); font-size:12px; text-align:center; margin-top:20px;">No events</div>';
     } else {
-      events.forEach(e => {
-        html += '<div class="week-evt" style="background:'+getTaskColor(e.title)+'">' + escapeHtml(e.title) + '<span class="week-evt-time">' + formatDisplayTime(e.start) + ' - ' + formatDisplayTime(e.end) + '</span></div>';
+      sortedEvents.forEach(e => {
+        html += `<div class="week-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 24px;">
+                  ${escapeHtml(e.title)}
+                  <span class="week-evt-time">${formatDisplayTime(e.start)} - ${formatDisplayTime(e.end)}</span>
+                  <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 12px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${e.originalIndex});">✕</span>
+                </div>`;
       });
     }
     
@@ -827,18 +843,23 @@ function renderDayView(container) {
   let k = dkey(currentCalMonth);
   let events = DB[k]?.events || [];
   
-  events.sort((a,b) => a.start.localeCompare(b.start));
+  let sortedEvents = events.map((e, idx) => ({ ...e, originalIndex: idx }));
+  sortedEvents.sort((a,b) => a.start.localeCompare(b.start));
 
   let html = '<div class="day-view-grid" onclick="openSidePanel(\''+k+'\')">';
   html += '<div>';
   html += '<div class="week-header" style="font-size:18px; margin-bottom:12px;">'+currentCalMonth.toLocaleDateString('en-GB',{weekday:'long', month:'short', day:'numeric'})+'</div>';
   html += '<div class="day-slot">';
   
-  if(events.length === 0) {
+  if(sortedEvents.length === 0) {
     html += '<div style="color:var(--text3); padding:50px 0; font-size: 14px;">No scheduled events today. Click anywhere to add.</div>';
   } else {
-    events.forEach(e => {
-      html += '<div class="day-evt" style="background:'+getTaskColor(e.title)+'">' + escapeHtml(e.title) + '<span class="day-evt-time">' + formatDisplayTime(e.start) + ' to ' + formatDisplayTime(e.end) + '</span></div>';
+    sortedEvents.forEach(e => {
+      html += `<div class="day-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 36px;">
+                ${escapeHtml(e.title)}
+                <span class="day-evt-time">${formatDisplayTime(e.start)} to ${formatDisplayTime(e.end)}</span>
+                <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 14px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${e.originalIndex});">✕</span>
+              </div>`;
     });
   }
   
