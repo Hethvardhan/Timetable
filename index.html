@@ -25,10 +25,11 @@
     .tabs { display:flex; gap:6px; background:var(--bg3); padding:3px; border-radius:40px; }
     .tab { background:transparent; border:none; padding:6px 18px; border-radius:32px; font-weight:500; color:var(--text2); cursor:pointer; transition:0.2s; }
     .tab.active { background:var(--primary-bg); color:var(--primary); }
-    .sync-area { display:flex; align-items:center; gap:10px; }
-    .sync-dot { width:8px; height:8px; border-radius:10px; background:var(--low); }
+    .sync-area { display:flex; align-items:center; gap:12px; }
+    .sync-dot { width:12px; height:12px; border-radius:10px; background:var(--low); }
     .sync-dot.saving { background:var(--mid); animation:pulse 0.9s infinite; }
     .sync-dot.error { background:var(--high); }
+    .sync-emoji { font-size:18px; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .view { display:none; padding:20px 18px 80px; max-width:1400px; margin:0 auto; }
     .view.active { display:block; }
@@ -103,7 +104,7 @@
     .day-column:last-child { border-right:none; }
     .hour-slot { border-bottom:1px solid var(--border); min-height:60px; position:relative; }
     .hour-slot:hover { background:rgba(192,132,252,0.05); }
-    .event-block { position:absolute; left:2px; right:2px; border-radius:8px; padding:4px 6px; font-size:11px; font-weight:500; overflow:hidden; cursor:pointer; transition:0.2s; border:1px solid; z-index:10; }
+    .event-block { position:absolute; left:2px; right:2px; border-radius:8px; padding:4px 6px; font-size:11px; font-weight:500; overflow:hidden; cursor:pointer; transition:0.2s; border:1px solid; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
     .event-block:hover { transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.3); }
     .event-block.study { background:rgba(96,165,250,0.25); border-color:var(--study); color:var(--study); }
     .event-block.hangout { background:rgba(244,114,182,0.25); border-color:var(--hangout); color:var(--hangout); }
@@ -112,6 +113,11 @@
     .event-title { font-size:11px; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .event-delete { position:absolute; top:1px; right:1px; background:rgba(0,0,0,0.5); color:white; border:none; border-radius:50%; width:16px; height:16px; font-size:10px; cursor:pointer; display:none; }
     .event-block:hover .event-delete { display:block; }
+    
+    /* Week and Day view event display - no times, centered, bold, large */
+    .event-block.week-day-view { font-size:14px; font-weight:700; padding:8px 6px; }
+    .event-block.week-day-view .event-time { display:none; }
+    .event-block.week-day-view .event-title { white-space:normal; overflow:visible; text-overflow:clip; font-size:14px; font-weight:700; }
     
     .month-view { background:var(--bg2); border:1px solid var(--border); border-radius:24px; overflow:hidden; margin-top:12px; }
     .month-weekdays { display:grid; grid-template-columns:repeat(7,1fr); background:var(--bg3); border-bottom:1px solid var(--border); }
@@ -122,8 +128,8 @@
     .month-cell.today { background:var(--productive-bg); }
     .month-cell.other-month { opacity:0.3; }
     .month-day-num { font-weight:700; font-size:14px; margin-bottom:4px; }
-    .month-events { font-size:9px; }
-    .month-event { background:rgba(192,132,252,0.3); color:var(--primary); padding:2px 4px; border-radius:4px; margin:2px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .month-events { font-size:10px; display:flex; flex-direction:column; gap:3px; }
+    .month-event { padding:4px 6px; border-radius:6px; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
     
     .progress-overview { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
     .overview-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:16px; flex:1; min-width:160px; }
@@ -152,7 +158,7 @@
   </style>
 </head>
 <body>
-<div class="topbar"><div class="logo"></div><div class="tabs"><button class="tab active" data-tab="tasks">Tasks</button><button class="tab" data-tab="calendar">Calendar</button><button class="tab" data-tab="progress">Progress</button></div><div class="sync-area"><div id="syncDot" class="sync-dot"></div><div id="syncLabel" style="font-size:10px; color:var(--text3)">synced</div></div></div>
+<div class="topbar"><div class="logo"></div><div class="tabs"><button class="tab active" data-tab="tasks">Tasks</button><button class="tab" data-tab="calendar">Calendar</button><button class="tab" data-tab="progress">Progress</button></div><div class="sync-area"><div id="syncDot" class="sync-dot"></div><div class="sync-emoji" id="syncEmoji">✓</div><div id="syncLabel" style="font-size:10px; color:var(--text3)">synced</div></div></div>
 
 <div id="tasksView" class="view active">
   <div class="stat-row" id="globalStats"></div>
@@ -168,19 +174,12 @@
       <button class="mode" data-mode="week">Week</button>
     </div>
   </div>
-  <div id="weekStrip" class="week-strip"></div>
-  <div style="background:var(--bg3); border:1px solid var(--border); border-radius:16px; padding:10px 16px; margin-bottom:10px; font-size:11px; color:var(--text2); line-height:1.7;">
-    <span style="color:var(--primary); font-weight:700; font-family:'JetBrains Mono';">FORMAT</span> &nbsp;
-    <span style="font-family:'JetBrains Mono'; color:var(--text);">[Task name] from [time] to [time] on [date] [month]</span>
-    <br>
-    <span style="color:var(--text3);">Example →</span>&nbsp;
-    <span style="font-family:'JetBrains Mono'; color:var(--productive);">Gym from 6pm to 9pm on 14 June</span>
-  </div>
   <div class="ai-bar">
     <input type="text" id="aiTaskInput" class="ai-input" placeholder="e.g. Linear algebra from 2pm to 4pm on 15 June">
-    <button class="ai-btn" id="aiTaskRun">Plan</button>
+    <button class="ai-btn" id="aiTaskRun">Add</button>
   </div>
   <div id="aiTaskResp" class="ai-resp"></div>
+  <div id="weekStrip" class="week-strip"></div>
   <div id="dayDetailContainer"></div>
 </div>
 
@@ -188,26 +187,19 @@
   <div class="date-nav">
     <div class="nav-group">
       <button class="nav-btn" id="prevMonthBtn">&larr;</button>
-      <span id="monthYearLabel" class="day-label"></span>
+      <button class="nav-btn" id="todayCalBtn">Today</button>
       <button class="nav-btn" id="nextMonthBtn">&rarr;</button>
+      <span id="monthYearLabel" class="day-label"></span>
     </div>
     <div class="mode-group">
       <button class="mode active" data-calmode="month">Month</button>
       <button class="mode" data-calmode="week">Week</button>
       <button class="mode" data-calmode="day">Day</button>
     </div>
-    <button class="nav-btn" id="todayCalBtn">Today</button>
-  </div>
-  <div style="background:var(--bg3); border:1px solid var(--border); border-radius:16px; padding:10px 16px; margin-bottom:10px; font-size:11px; color:var(--text2); line-height:1.7;">
-    <span style="color:var(--primary); font-weight:700; font-family:'JetBrains Mono';">FORMAT</span> &nbsp;
-    <span style="font-family:'JetBrains Mono'; color:var(--text);">[Event name] from [time] to [time] on [date] [month]</span>
-    <br>
-    <span style="color:var(--text3);">Example →</span>&nbsp;
-    <span style="font-family:'JetBrains Mono'; color:var(--productive);">Gym from 6pm to 9pm on 14 June</span>
   </div>
   <div class="ai-bar">
     <input type="text" id="aiCalInput" class="ai-input" placeholder="e.g. Gym from 6pm to 9pm on 14 June">
-    <button class="ai-btn" id="aiCalRun">Schedule</button>
+    <button class="ai-btn" id="aiCalRun">Add</button>
   </div>
   <div id="aiCalResp" class="ai-resp"></div>
   <div id="calendarContainer"></div>
@@ -215,679 +207,577 @@
 
 <div id="progressView" class="view">
   <div class="progress-overview" id="progressOverview"></div>
-  <div id="phasesContainer"></div>
-  <div id="aiProgressAdvice" class="ai-suggestion-box">
-    <div style="font-weight:600; margin-bottom:6px;">🧠 AI study recommendation</div>
-    <div id="speedAdviceText">loading...</div>
-  </div>
+  <div id="progressContent"></div>
 </div>
 
 <div id="sidePanel" class="side-panel">
-  <button style="float:right; background:none; border:none; color:var(--text3); font-size:20px; cursor:pointer" onclick="closeSidePanel()">✕</button>
-  <h3 id="panelDateTitle"></h3>
-  <div style="margin:16px 0">
-    <input id="panelEventTitle" placeholder="Event title" class="add-input" style="margin-bottom:8px; width:100%">
-    <div style="display:flex; gap:6px">
-      <input type="time" id="panelStart" class="add-input">
-      <input type="time" id="panelEnd" class="add-input">
-    </div>
-    <div style="display:flex; gap:6px; margin:10px 0">
-      <button class="mode" onclick="setPanelType('hangout')">🎉 Hangout</button>
-      <button class="mode" onclick="setPanelType('study')">📚 Study</button>
-      <button class="mode" onclick="setPanelType('main')">⚡ Event</button>
-    </div>
-    <button class="nav-btn" style="width:100%" onclick="addPanelEvent()">+ Add Event</button>
-    <div id="panelEventsList" style="margin-top:12px"></div>
+  <h2 id="panelDateTitle" style="margin-bottom:16px"></h2>
+  <input type="text" id="panelEventTitle" class="add-input" placeholder="Event name" style="margin-bottom:12px">
+  <div style="display:flex; gap:8px; margin-bottom:12px">
+    <input type="time" id="panelStart" class="add-input" style="flex:1">
+    <input type="time" id="panelEnd" class="add-input" style="flex:1">
   </div>
+  <div style="display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap">
+    <button class="nav-btn" onclick="setPanelType('main')" style="background:rgba(192,132,252,0.2); border-color:var(--primary); color:var(--primary)">Main</button>
+    <button class="nav-btn" onclick="setPanelType('study')" style="background:rgba(96,165,250,0.2); border-color:var(--study); color:var(--study)">Study</button>
+    <button class="nav-btn" onclick="setPanelType('hangout')" style="background:rgba(244,114,182,0.2); border-color:var(--hangout); color:var(--hangout)">Hangout</button>
+  </div>
+  <button class="nav-btn" onclick="addPanelEvent()" style="width:100%; background:var(--primary-bg); border-color:var(--primary); color:var(--primary); margin-bottom:12px">Add Event</button>
+  <button class="nav-btn" onclick="closeSidePanel()" style="width:100%">Close</button>
 </div>
 
 <script>
-let DB = {};
-let ROADMAP = [];
-let currentFocusDate = new Date();
-let currentCalMonth = new Date();
-let viewMode = "day";
-let calViewMode = "month";
-let panelType = "hangout";
-let apiKey = null, binId = null;
-let saveTimer = null;
+let DB = {}, ROADMAP = [], currentFocusDate = new Date(), currentCalMonth = new Date(), viewMode = "day", calViewMode = "month", panelType = "main", apiKey = "", binId = "", saveTimer = null;
 
-function dkey(d) { 
-  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0'); 
+// Color palette for tasks
+const TASK_COLORS = {
+  "study": "#60a5fa",
+  "hangout": "#f472b6",
+  "main": "#c084fc",
+  "default": "#2dd4bf"
+};
+
+// Generate unique color for task name
+let taskNameColors = {};
+function getTaskColor(taskName) {
+  if (!taskName) return TASK_COLORS.default;
+  if (!taskNameColors[taskName]) {
+    const colors = ["#60a5fa", "#f472b6", "#c084fc", "#2dd4bf", "#f97316", "#fbbf24", "#34d399", "#f87171"];
+    const hash = taskName.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
+    taskNameColors[taskName] = colors[Math.abs(hash) % colors.length];
+  }
+  return taskNameColors[taskName];
 }
+
+// Parse time range from text (e.g., "7:00pm to 11:59pm" or "7:00pm-11:59pm")
+function parseTimeRange(text) {
+  if (!text) return { start: null, end: null };
+  
+  const timeRegex = /(\d{1,2}):(\d{2})\s*(am|pm)?/gi;
+  const matches = [...text.matchAll(timeRegex)];
+  
+  if (matches.length < 2) return { start: null, end: null };
+  
+  const parseTime = (match) => {
+    let hour = parseInt(match[1]);
+    const min = parseInt(match[2]);
+    const period = (match[3] || '').toLowerCase();
+    
+    if (period === 'pm' && hour !== 12) hour += 12;
+    if (period === 'am' && hour === 12) hour = 0;
+    
+    return `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+  };
+  
+  return {
+    start: parseTime(matches[0]),
+    end: parseTime(matches[1])
+  };
+}
+
+function dkey(d) { return d.toISOString().split('T')[0]; }
 function todayKey() { return dkey(new Date()); }
-function ensureDay(k) { 
-  if(!DB[k]) DB[k] = { tasks:[], events:[], notes:"" }; 
-  if(!DB[k].tasks) DB[k].tasks=[]; 
-  if(!DB[k].events) DB[k].events=[]; 
+
+function ensureDay(k) {
+  if (!DB[k]) DB[k] = { tasks: [], events: [], notes: "" };
 }
 
-function buildRoadmap() {
-  return [
-    { id:"phase1", name:"Phase 1: Foundations (Jun 12 - Jul 9)", totalTarget:110, topics:[
-      { name:"Book of Proof (Hammack)", target:40, subtopics:["Ch1-3: Sets & Logic","Ch4-6: Direct Proofs","Ch7-9: Induction & Contradiction","Ch10-13: Functions & Cardinality"], links:["https://www.people.vcu.edu/~rhammack/BookOfProof/"] },
-      { name:"Calculus (Stewart + Paul's + MIT 18.02)", target:25, subtopics:["AA HL Review (skip)","Multivariable: Partial Derivatives","Gradients & Optimization","Multiple Integrals","Line Integrals"], links:["https://tutorial.math.lamar.edu/","https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] },
-      { name:"Python Fluency (CS50P + Automate)", target:15, subtopics:["CS50P Week 0-3","OOP & Error Handling","File I/O & Regex","Automate Boring Stuff Projects"], links:["https://cs50.harvard.edu/python/2022/","https://automatetheboringstuff.com/"] },
-      { name:"NumPy + Matplotlib", target:15, subtopics:["Arrays & Broadcasting","Indexing & Vectorization","Basic Plots & Customization"], links:["https://numpy.org/learn/","https://matplotlib.org/stable/tutorials/"] },
-      { name:"Git + GitHub", target:5, subtopics:["Git Branching","Commits & Pull Requests","GitHub Profile Setup"], links:["https://learngitbranching.js.org/"] },
-      { name:"LeetCode Easy (20 problems)", target:15, subtopics:["Arrays & Hashing","Two Pointers","String Manipulation","Basic Recursion"], links:["https://neetcode.io/roadmap","https://leetcode.com/"] }
+function initRoadmap() {
+  ROADMAP = [
+    { id: "phase1", title: "Phase 1: Setup", progress: 0, subtopics: [
+      { name: "Environment", status: "done", targetHours: 2, spentHours: 2 },
+      { name: "Dependencies", status: "done", targetHours: 1, spentHours: 1 }
     ]},
-    { id:"phase2", name:"Phase 2: Core Math + Algorithms (Jul 10 - Aug 13)", totalTarget:215, topics:[
-      { name:"Linear Algebra (Lay + MIT 18.06 + 3B1B)", target:60, subtopics:["Systems & Matrices","Vector Spaces","Eigenvalues & Eigenvectors","SVD & Applications"], links:["https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/","https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"] },
-      { name:"Probability (Morin + Stat110)", target:40, subtopics:["Counting & Combinatorics","Conditional Probability & Bayes","Expectation & Variance","Distributions & CLT"], links:["https://projects.iq.harvard.edu/stat110/home"] },
-      { name:"Discrete Math (Rosen / Levin + MIT 6.042J)", target:30, subtopics:["Logic & Proofs","Graph Theory","Number Theory","Combinatorics"], links:["https://discrete.openmathbooks.org/dmoi3.html","https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2010/"] },
-      { name:"Data Structures & Algorithms (Neetcode 150)", target:50, subtopics:["Trees & Graphs","Recursion & DP","Sliding Window & Two Pointers","Heaps & Tries"], links:["https://neetcode.io/"] },
-      { name:"LeetCode Medium (30 problems)", target:30, subtopics:["Tree Traversals","BFS/DFS","Dynamic Programming Basics"], links:["https://leetcode.com/"] },
-      { name:"Pandas + Scipy", target:5, subtopics:["DataFrames & Groupby","Time Series & Stats"], links:["https://pandas.pydata.org/docs/","https://www.kaggle.com/learn/pandas"] }
-    ]},
-    { id:"phase3", name:"Phase 3: ML + Computer Vision (Aug 14 - Sep 8)", totalTarget:155, topics:[
-      { name:"fast.ai Part 1", target:20, subtopics:["Lesson 1-3: Image Classification","Lesson 4-5: NLP & Tabular","Lesson 6-7: Collaborative Filtering"], links:["https://course.fast.ai/"] },
-      { name:"Karpathy Zero to Hero", target:30, subtopics:["micrograd","makemore","GPT from Scratch"], links:["https://karpathy.ai/zero-to-hero.html"] },
-      { name:"OpenCV (LearnOpenCV + Docs)", target:20, subtopics:["Image Basics & Filtering","Edge Detection & Contours","Feature Matching","Object Tracking"], links:["https://learnopencv.com/","https://docs.opencv.org/4.13.0/"] },
-      { name:"PyTorch Basics (Official Tutorials)", target:15, subtopics:["Tensors & Autograd","Training Loop","Custom Datasets","Transfer Learning"], links:["https://pytorch.org/tutorials/beginner/basics/intro.html","https://pytorch.org/tutorials/"] },
-      { name:"Project 1: CIFAR-10 CNN", target:30, subtopics:["DataLoader & Augmentation","3-Layer CNN","Training & Evaluation","Confusion Matrix"], links:[] },
-      { name:"Multivariable Calc (MIT 18.02 Review)", target:25, subtopics:["Partial Derivatives & Gradients","Optimization","Jacobian & Hessian"], links:["https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] }
+    { id: "phase2", title: "Phase 2: Development", progress: 0, subtopics: [
+      { name: "Core Features", status: "ongoing", targetHours: 10, spentHours: 5 },
+      { name: "Testing", status: "not started", targetHours: 5, spentHours: 0 }
     ]}
   ];
 }
 
-function makeUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    let r = Math.random() * 16 | 0;
-    let v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-
-function initRoadmap() {
-  let roadmapData = buildRoadmap();
-  ROADMAP = [];
-  for(let phase of roadmapData) {
-    for(let topic of phase.topics) {
-      let subtopicItems = [];
-      let subHours = Math.round(topic.target / topic.subtopics.length);
-      for(let sub of topic.subtopics) {
-        subtopicItems.push({ name: sub, status: "not started", spentHours: 0, targetHours: subHours });
-      }
-      ROADMAP.push({
-        id: makeUUID(),
-        phase: phase.name,
-        topic: topic.name,
-        targetHours: topic.target,
-        spentHours: 0,
-        status: "not started",
-        subtopics: subtopicItems,
-        links: topic.links || []
-      });
-    }
-  }
-}
-
-function recalcTopicProgress(topic) {
-  let totalSpent = topic.subtopics.reduce((s,sub)=>s+sub.spentHours,0);
-  topic.spentHours = totalSpent;
-  let allDone = topic.subtopics.every(s=>s.status==="done");
-  if(allDone) topic.status = "done";
-  else if(totalSpent > 0) topic.status = "ongoing";
-  else topic.status = "not started";
-}
-
-function recomputeProgress() {
-  let totalSpent = ROADMAP.reduce((s,t)=>s+t.spentHours,0);
-  let totalTarget = ROADMAP.reduce((s,t)=>s+t.targetHours,0);
-  let completedTopics = ROADMAP.filter(t=>t.status==="done").length;
-  let percent = totalTarget>0 ? (totalSpent/totalTarget)*100 : 0;
-  let remaining = Math.max(0, totalTarget - totalSpent);
-  let daysLeft = Math.max(0, (new Date(2026,8,8) - new Date())/(1000*3600*24));
-  let dailyNeeded = daysLeft>0 ? remaining/daysLeft : remaining;
-  let daysPassed = Math.max(1, (new Date() - new Date(2026,5,12))/(1000*3600*24));
-  let actualPace = totalSpent/daysPassed;
-  return { totalSpent, totalTarget, completedTopics, totalTopics:ROADMAP.length, percent, remaining, dailyNeeded, actualPace };
+function renderGlobalStats() {
+  let allDays = Object.keys(DB);
+  let totalTasks = allDays.reduce((sum, k) => sum + (DB[k].tasks || []).length, 0);
+  let completedTasks = allDays.reduce((sum, k) => sum + (DB[k].tasks || []).filter(t => t.done).length, 0);
+  let totalEvents = allDays.reduce((sum, k) => sum + (DB[k].events || []).length, 0);
+  
+  let html = `
+    <div class="stat-card"><div class="stat-num">${totalTasks}</div><div class="stat-label">Tasks</div></div>
+    <div class="stat-card"><div class="stat-num">${completedTasks}</div><div class="stat-label">Done</div></div>
+    <div class="stat-card"><div class="stat-num">${totalEvents}</div><div class="stat-label">Events</div></div>
+  `;
+  document.getElementById("globalStats").innerHTML = html;
 }
 
 function renderProgressSection() {
-  let stats = recomputeProgress();
-
-  // Stats row
-  let overviewEl = document.getElementById("progressOverview");
-  overviewEl.innerHTML = "";
-  [
-    { val: Math.round(stats.totalSpent)+"h", label:"hours spent", color:"var(--primary)" },
-    { val: stats.totalTarget+"h",            label:"total target", color:"var(--productive)" },
-    { val: Math.round(stats.percent)+"%",    label:"progress",     color:null },
-    { val: stats.completedTopics+"/"+stats.totalTopics, label:"topics done", color:null }
-  ].forEach(function(s){
-    let card = document.createElement("div"); card.className="overview-card";
-    let num  = document.createElement("div"); num.className="stat-num";
-    if(s.color) num.style.color = s.color;
-    num.textContent = s.val;
-    let lbl  = document.createElement("div"); lbl.className="stat-label";
-    lbl.textContent = s.label;
-    card.appendChild(num); card.appendChild(lbl);
-    overviewEl.appendChild(card);
-  });
-
-  // Phases
-  let container = document.getElementById("phasesContainer");
-  container.innerHTML = "";
-  let phaseNames = [
-    "Phase 1: Foundations (Jun 12 - Jul 9)",
-    "Phase 2: Core Math + Algorithms (Jul 10 - Aug 13)",
-    "Phase 3: ML + Computer Vision (Aug 14 - Sep 8)"
-  ];
-
-  for(let phaseName of phaseNames){
-    let phaseTopics = ROADMAP.filter(function(t){ return t.phase === phaseName; });
-    if(phaseTopics.length === 0) continue;
-
-    let spent   = phaseTopics.reduce(function(s,t){ return s+t.spentHours; }, 0);
-    let target  = phaseTopics.reduce(function(s,t){ return s+t.targetHours; }, 0);
-    let pct     = target > 0 ? (spent/target)*100 : 0;
-
-    let phaseCard = document.createElement("div"); phaseCard.className="phase-card";
-
-    // Phase title
-    let titleDiv = document.createElement("div"); titleDiv.className="phase-title";
-    let titleSpan = document.createElement("span"); titleSpan.textContent = phaseName;
-    let hoursSpan = document.createElement("span"); hoursSpan.textContent = Math.round(spent)+"h / "+target+"h";
-    hoursSpan.style.cssText = "color:var(--text2);font-size:13px";
-    titleDiv.appendChild(titleSpan); titleDiv.appendChild(hoursSpan);
-    phaseCard.appendChild(titleDiv);
-
-    // Progress bar
-    let bar = document.createElement("div"); bar.className="phase-progress";
-    let fill = document.createElement("div"); fill.className="phase-progress-fill";
-    fill.style.width = pct+"%";
-    bar.appendChild(fill); phaseCard.appendChild(bar);
-
-    // Topics
-    for(let t of phaseTopics){
-      let statusClass = t.status==="done"?"status-done":t.status==="ongoing"?"status-ongoing":"status-not";
-      let statusText  = t.status==="done"?"✓ Done":t.status==="ongoing"?"⏳ Ongoing":"○ Not Started";
-
-      let row = document.createElement("div"); row.className="topic-row";
-
-      // Name + links
-      let nameDiv = document.createElement("div"); nameDiv.className="topic-name";
-      nameDiv.textContent = t.topic + " ";
-      (t.links||[]).forEach(function(l){
-        let a = document.createElement("a"); a.href=l; a.target="_blank";
-        a.className="resource-link"; a.textContent="🔗";
-        nameDiv.appendChild(a);
-      });
-      row.appendChild(nameDiv);
-
-      // Status badge
-      let statusDiv = document.createElement("div");
-      statusDiv.className="topic-status "+statusClass;
-      statusDiv.textContent = statusText;
-      (function(id){ statusDiv.addEventListener("click", function(){ cycleTopicStatus(id); }); })(t.id);
-      row.appendChild(statusDiv);
-
-      // Hours input
-      let input = document.createElement("input");
-      input.type="number"; input.step="0.5"; input.className="time-spent";
-      input.value = Math.round(t.spentHours*10)/10;
-      (function(id){ input.addEventListener("change", function(){ updateTopicHours(id, this.value); }); })(t.id);
-      row.appendChild(input);
-
-      let hLabel = document.createElement("div");
-      hLabel.style.cssText="font-size:11px;color:var(--text3);min-width:50px";
-      hLabel.textContent = "/"+t.targetHours+"h";
-      row.appendChild(hLabel);
-      phaseCard.appendChild(row);
-
-      // Subtopics
-      if(t.subtopics && t.subtopics.length){
-        let subList = document.createElement("div"); subList.className="subtopic-list";
-        t.subtopics.forEach(function(sub, idx){
-          let subStatus = sub.status==="done"?"status-done":sub.status==="ongoing"?"status-ongoing":"status-not";
-          let subLabel  = sub.status==="done"?"✓":sub.status==="ongoing"?"⏳":"○";
-
-          let subItem = document.createElement("div"); subItem.className="subtopic-item";
-
-          let subBadge = document.createElement("div");
-          subBadge.className="sub-status "+subStatus;
-          subBadge.textContent = subLabel+" "+sub.name;
-          (function(id,i){ subBadge.addEventListener("click", function(){ cycleSubStatus(id,i); }); })(t.id, idx);
-          subItem.appendChild(subBadge);
-
-          let subInput = document.createElement("input");
-          subInput.type="number"; subInput.step="0.5"; subInput.className="time-spent";
-          subInput.style.width="70px";
-          subInput.value = Math.round(sub.spentHours*10)/10;
-          (function(id,i){ subInput.addEventListener("change", function(){ updateSubHours(id,i,this.value); }); })(t.id, idx);
-          subItem.appendChild(subInput);
-
-          let subHLabel = document.createElement("span");
-          subHLabel.style.cssText="font-size:10px;color:var(--text3)";
-          subHLabel.textContent="/"+sub.targetHours+"h";
-          subItem.appendChild(subHLabel);
-
-          subList.appendChild(subItem);
-        });
-        phaseCard.appendChild(subList);
-      }
-    }
-    container.appendChild(phaseCard);
+  let overviewHtml = `
+    <div class="overview-card">
+      <div style="font-weight:800; margin-bottom:8px">Productivity</div>
+      <div style="font-size:24px; font-weight:700; color:var(--productive)">85%</div>
+      <div style="font-size:11px; color:var(--text3); margin-top:4px">On track</div>
+    </div>
+    <div class="overview-card">
+      <div style="font-weight:800; margin-bottom:8px">This Week</div>
+      <div style="font-size:24px; font-weight:700; color:var(--primary)">12h</div>
+      <div style="font-size:11px; color:var(--text3); margin-top:4px">Logged</div>
+    </div>
+  `;
+  document.getElementById("progressOverview").innerHTML = overviewHtml;
+  
+  let contentHtml = "";
+  for (let topic of ROADMAP) {
+    let subHtml = topic.subtopics.map((sub, idx) => `
+      <div class="subtopic-item">
+        <div style="flex:1">${sub.name}</div>
+        <div class="sub-status" onclick="cycleSubStatus('${topic.id}', ${idx})" style="background:${sub.status === 'done' ? 'rgba(45,212,191,0.2)' : sub.status === 'ongoing' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)'}; color:${sub.status === 'done' ? '#2dd4bf' : sub.status === 'ongoing' ? '#fbbf24' : '#f87171'}">${sub.status}</div>
+        <input type="number" class="time-spent" value="${sub.spentHours}" onchange="updateSubHours('${topic.id}', ${idx}, this.value)" min="0" step="0.5">
+      </div>
+    `).join("");
+    
+    contentHtml += `
+      <div class="phase-card">
+        <div class="phase-title">${topic.title}</div>
+        <div class="phase-progress"><div class="phase-progress-fill" style="width:${topic.progress}%"></div></div>
+        <div class="subtopic-list">${subHtml}</div>
+      </div>
+    `;
   }
-
-  // AI advice
-  let incomplete = ROADMAP.filter(function(t){ return t.status!=="done"; });
-  let nextTopic  = incomplete.length ? incomplete[0].topic : "All topics completed!";
-  let advEl = document.getElementById("speedAdviceText");
-  if(stats.dailyNeeded > stats.actualPace + 0.5)
-    advEl.innerHTML = "⚠️ To finish by Sep 8 you need ~"+stats.dailyNeeded.toFixed(1)+"h/day (current "+stats.actualPace.toFixed(1)+"h/day). Focus next on: <strong>"+escapeHtml(nextTopic)+"</strong>.";
-  else if(stats.dailyNeeded <= stats.actualPace)
-    advEl.innerHTML = "✅ Great pace! Keep going. Next recommended: <strong>"+escapeHtml(nextTopic)+"</strong>.";
-  else
-    advEl.innerHTML = "📌 Try to complete <strong>"+escapeHtml(nextTopic)+"</strong> next. You need "+stats.dailyNeeded.toFixed(1)+"h/day.";
+  document.getElementById("progressContent").innerHTML = contentHtml;
 }
 
-function cycleTopicStatus(id){ 
-  let t=ROADMAP.find(x=>x.id===id); 
-  if(t){ 
-    let map={"not started":"ongoing","ongoing":"done","done":"not started"}; 
-    t.status=map[t.status]; 
-    if(t.status==="done") t.subtopics.forEach(s=>{ s.status="done"; s.spentHours=s.targetHours; }); 
-    scheduleSync(); 
-    renderProgressSection(); 
-  } 
-}
-function updateTopicHours(id,val){ 
-  let t=ROADMAP.find(x=>x.id===id); 
-  if(t){ 
-    t.spentHours=parseFloat(val)||0; 
-    scheduleSync(); 
-    renderProgressSection(); 
-  } 
-}
-function cycleSubStatus(topicId, subIdx){ 
-  let t=ROADMAP.find(x=>x.id===topicId); 
-  if(t && t.subtopics[subIdx]){ 
-    let s=t.subtopics[subIdx]; 
-    let map={"not started":"ongoing","ongoing":"done","done":"not started"}; 
-    s.status=map[s.status]; 
-    if(s.status==="done") s.spentHours=s.targetHours; 
-    recalcTopicProgress(t); 
-    scheduleSync(); 
-    renderProgressSection(); 
-  } 
-}
-function updateSubHours(topicId, subIdx, val){ 
-  let t=ROADMAP.find(x=>x.id===topicId); 
-  if(t && t.subtopics[subIdx]){ 
-    t.subtopics[subIdx].spentHours=parseFloat(val)||0; 
-    recalcTopicProgress(t); 
-    scheduleSync(); 
-    renderProgressSection(); 
-  } 
+function recalcTopicProgress(topic) {
+  if (!topic.subtopics.length) { topic.progress = 0; return; }
+  let done = topic.subtopics.filter(s => s.status === "done").length;
+  topic.progress = Math.round(done / topic.subtopics.length * 100);
 }
 
-function setSync(state){ 
-  let d=document.getElementById("syncDot"); 
-  if(d) d.className="sync-dot"+(state==="saving"?" saving":state==="error"?" error":""); 
-  document.getElementById("syncLabel").innerText=state==="saving"?"saving...":state==="error"?"error":"synced"; 
+function cycleTopicStatus(topicId) {
+  let t = ROADMAP.find(x => x.id === topicId);
+  if (t) {
+    let map = { "not started": "ongoing", "ongoing": "done", "done": "not started" };
+    t.subtopics.forEach(s => { s.status = map[s.status]; if (s.status === "done") s.spentHours = s.targetHours; });
+    recalcTopicProgress(t);
+    scheduleSync();
+    renderProgressSection();
+  }
 }
-async function saveToCloud(){ 
-  if(!apiKey) return; 
-  setSync("saving"); 
-  try{ 
-    let payload={db:DB, roadmap:ROADMAP}; 
-    if(!binId){ 
-      let r=await fetch("https://api.jsonbin.io/v3/b",{method:"POST",headers:{"Content-Type":"application/json","X-Master-Key":apiKey,"X-Bin-Name":"planner_data"},body:JSON.stringify(payload)}); 
-      let data=await r.json(); 
-      binId=data.metadata?.id; 
-      if(binId) lsSet("planner_bin",binId); 
-    } else { 
-      await fetch("https://api.jsonbin.io/v3/b/"+binId,{method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":apiKey},body:JSON.stringify(payload)}); 
-    } 
-    setSync("ok"); 
-  } catch(e) { 
-    setSync("error"); 
-  } 
+
+function updateTopicHours(topicId, val) {
+  let t = ROADMAP.find(x => x.id === topicId);
+  if (t) {
+    t.subtopics.forEach(s => { s.spentHours = parseFloat(val) || 0; });
+    scheduleSync();
+    renderProgressSection();
+  }
 }
-function scheduleSync(){ 
-  clearTimeout(saveTimer); 
-  saveTimer=setTimeout(saveToCloud,1500); 
+
+function cycleSubStatus(topicId, subIdx) {
+  let t = ROADMAP.find(x => x.id === topicId);
+  if (t && t.subtopics[subIdx]) {
+    let s = t.subtopics[subIdx];
+    let map = { "not started": "ongoing", "ongoing": "done", "done": "not started" };
+    s.status = map[s.status];
+    if (s.status === "done") s.spentHours = s.targetHours;
+    recalcTopicProgress(t);
+    scheduleSync();
+    renderProgressSection();
+  }
 }
-async function loadFromCloud(){
-  // Always render immediately so the page works even if fetch is blocked (e.g. Brave on file://)
-  if(!ROADMAP.length) initRoadmap();
-  fullRender();
-  if(!apiKey || !binId) return;
+
+function updateSubHours(topicId, subIdx, val) {
+  let t = ROADMAP.find(x => x.id === topicId);
+  if (t && t.subtopics[subIdx]) {
+    t.subtopics[subIdx].spentHours = parseFloat(val) || 0;
+    recalcTopicProgress(t);
+    scheduleSync();
+    renderProgressSection();
+  }
+}
+
+function setSync(state) {
+  let d = document.getElementById("syncDot");
+  if (d) d.className = "sync-dot" + (state === "saving" ? " saving" : state === "error" ? " error" : "");
+  let emoji = document.getElementById("syncEmoji");
+  if (emoji) emoji.innerText = state === "saving" ? "⟳" : state === "error" ? "✕" : "✓";
+  document.getElementById("syncLabel").innerText = state === "saving" ? "saving..." : state === "error" ? "error" : "synced";
+}
+
+async function saveToCloud() {
+  if (!apiKey) return;
   setSync("saving");
-  try{
-    let r=await fetch("https://api.jsonbin.io/v3/b/"+binId+"/latest",{headers:{"X-Master-Key":apiKey}});
-    if(r.ok){
-      let data=await r.json();
-      if(data.record && data.record.db) DB=data.record.db;
-      if(data.record && data.record.roadmap && data.record.roadmap.length) ROADMAP=data.record.roadmap;
+  try {
+    let payload = { db: DB, roadmap: ROADMAP };
+    if (!binId) {
+      let r = await fetch("https://api.jsonbin.io/v3/b", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Master-Key": apiKey, "X-Bin-Name": "planner_data" },
+        body: JSON.stringify(payload)
+      });
+      let data = await r.json();
+      binId = data.metadata?.id;
+      if (binId) lsSet("planner_bin", binId);
+    } else {
+      await fetch("https://api.jsonbin.io/v3/b/" + binId, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-Master-Key": apiKey },
+        body: JSON.stringify(payload)
+      });
+    }
+    setSync("ok");
+  } catch (e) {
+    setSync("error");
+  }
+}
+
+function scheduleSync() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToCloud, 1500);
+}
+
+async function loadFromCloud() {
+  if (!ROADMAP.length) initRoadmap();
+  fullRender();
+  if (!apiKey || !binId) return;
+  setSync("saving");
+  try {
+    let r = await fetch("https://api.jsonbin.io/v3/b/" + binId + "/latest", { headers: { "X-Master-Key": apiKey } });
+    if (r.ok) {
+      let data = await r.json();
+      if (data.record && data.record.db) DB = data.record.db;
+      if (data.record && data.record.roadmap && data.record.roadmap.length) ROADMAP = data.record.roadmap;
       fullRender();
     }
     setSync("ok");
-  } catch(e){
+  } catch (e) {
     setSync("ok");
   }
 }
 
-function getWeekDates(base){
-  let d=new Date(base); let dow=d.getDay(); let mon=new Date(d); mon.setDate(d.getDate()-(dow===0?6:dow-1));
-  return Array.from({length:7},(_,i)=>{ let x=new Date(mon); x.setDate(mon.getDate()+i); return x; });
+function getWeekDates(base) {
+  let d = new Date(base);
+  let dow = d.getDay();
+  let mon = new Date(d);
+  mon.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+  return Array.from({ length: 7 }, (_, i) => { let x = new Date(mon); x.setDate(mon.getDate() + i); return x; });
 }
 
-function renderTasks(){
-  let weekDates=getWeekDates(currentFocusDate);
-  document.getElementById("selectedDateLabel").innerHTML = currentFocusDate.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
-  
-  let strip=document.getElementById("weekStrip");
-  if(viewMode==="week"){ 
-    strip.style.display="grid"; 
-    strip.innerHTML=""; 
-    weekDates.forEach(d=>{ 
-      let isT=dkey(d)===todayKey(); 
-      strip.innerHTML+='<div class="strip-cell '+(isT?'today':'')+'" onclick="setFocusDate(\''+dkey(d)+'\')"><div class="strip-day">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="strip-date">'+d.getDate()+'</div></div>'; 
-    }); 
-  } else { 
-    strip.style.display="none"; 
+function renderTasks() {
+  let weekDates = getWeekDates(currentFocusDate);
+  document.getElementById("selectedDateLabel").innerHTML = currentFocusDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  let strip = document.getElementById("weekStrip");
+  if (viewMode === "week") {
+    strip.style.display = "grid";
+    strip.innerHTML = "";
+    weekDates.forEach(d => {
+      let isT = dkey(d) === todayKey();
+      strip.innerHTML += '<div class="strip-cell ' + (isT ? 'today' : '') + '" onclick="setFocusDate(\'' + dkey(d) + '\')"><div class="strip-day">' + d.toLocaleDateString('en-GB', { weekday: 'short' }) + '</div><div class="strip-date">' + d.getDate() + '</div></div>';
+    });
+  } else {
+    strip.style.display = "none";
   }
-  
-  let datesToShow = viewMode==="week" ? weekDates : [currentFocusDate];
-  let container=document.getElementById("dayDetailContainer"); 
-  container.innerHTML="";
-  
-  for(let d of datesToShow){
-    let k=dkey(d); 
+
+  let datesToShow = viewMode === "week" ? weekDates : [currentFocusDate];
+  let container = document.getElementById("dayDetailContainer");
+  container.innerHTML = "";
+
+  for (let d of datesToShow) {
+    let k = dkey(d);
     ensureDay(k);
-    let tasks=DB[k].tasks||[]; 
-    let doneCount=tasks.filter(t=>t.done).length; 
-    let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
-    let isToday=k===todayKey();
-    
-    let card=document.createElement("div"); 
-    card.className="day-card"; 
-    if(isToday) card.classList.add("open"); 
-    card.id="card-"+k;
-    card.innerHTML='<div class="card-header" onclick="toggleDay(\''+k+'\')"><div class="badge '+(isToday?'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+d.toLocaleDateString('en-GB',{ weekday:'long', month:'short', day:'numeric' })+' '+(isToday?'· today':'')+'</div><div class="pill-strip" id="pills-'+k+'"></div></div><div class="chevron">›</div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="new task..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'"></div><textarea class="notes-area" id="notes-'+k+'" oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
+    let tasks = DB[k].tasks || [];
+    let doneCount = tasks.filter(t => t.done).length;
+    let percent = tasks.length ? Math.round(doneCount / tasks.length * 100) : 0;
+    let isToday = k === todayKey();
+
+    let card = document.createElement("div");
+    card.className = "day-card";
+    if (isToday) card.classList.add("open");
+    card.id = "card-" + k;
+    card.innerHTML = '<div class="card-header" onclick="toggleDay(\'' + k + '\')"><div class="badge ' + (isToday ? 'today' : '') + '"><div class="badge-weekday">' + d.toLocaleDateString('en-GB', { weekday: 'short' }) + '</div><div class="badge-date">' + d.getDate() + '</div></div><div class="day-info"><div class="day-title">' + d.toLocaleDateString('en-GB', { weekday: 'long', month: 'short', day: 'numeric' }) + ' ' + (isToday ? '· today' : '') + '</div><div class="pill-strip" id="pills-' + k + '"></div></div><div class="chevron">›</div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:' + percent + '%"></div></div><div id="tasks-list-' + k + '"></div><div class="add-task"><input id="newtask-' + k + '" class="add-input" placeholder="new task..."><select id="tasktype-' + k + '" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-' + k + '" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\'' + k + '\')">+</button></div><div id="events-list-' + k + '"></div><textarea class="notes-area" id="notes-' + k + '" oninput="updateNote(\'' + k + '\')">' + (DB[k].notes || "") + '</textarea></div>';
     container.appendChild(card);
-    renderDayTasks(k); 
-    renderDayEvents(k); 
+    renderDayTasks(k);
+    renderDayEvents(k);
     updatePills(k);
   }
 }
 
-function renderDayTasks(k){
-  let tasks=DB[k].tasks||[]; 
-  let container=document.getElementById("tasks-list-"+k); 
-  if(!container) return; 
-  container.innerHTML="";
-  
-  tasks.forEach((t,i)=>{
-    let typeClass=t.type==="productive"?"type-prod":"type-nonprod";
-    let typeLabel=t.type==="productive"?"⚡ Productive":"🌀 Non-prod";
-    let prioClass=t.prio==="high"?"prio-high":t.prio==="low"?"prio-low":"prio-mid";
-    let prioLabel=t.prio==="high"?"🔴 HIGH":t.prio==="low"?"🟢 LOW":"🟡 MID";
+function renderDayTasks(k) {
+  let tasks = DB[k].tasks || [];
+  let container = document.getElementById("tasks-list-" + k);
+  if (!container) return;
+  container.innerHTML = "";
+
+  tasks.forEach((t, i) => {
+    let typeClass = t.type === "productive" ? "type-prod" : "type-nonprod";
+    let typeLabel = t.type === "productive" ? "⚡ Productive" : "🌀 Non-prod";
+    let prioClass = t.prio === "high" ? "prio-high" : t.prio === "low" ? "prio-low" : "prio-mid";
+    let prioLabel = t.prio === "high" ? "🔴 HIGH" : t.prio === "low" ? "🟢 LOW" : "🟡 MID";
     let totalMinutes = t.timeSpent || 0;
-    let displayHours = Math.floor(totalMinutes/60);
-    let displayMins = totalMinutes%60;
-    let durText = totalMinutes>0 ? displayHours+"h "+displayMins+"m" : "0h";
-    
-    let row=document.createElement("div"); 
-    row.className="task-row";
-    row.innerHTML='<div class="check '+(t.done?'done':'')+'" onclick="toggleTaskDone(\''+k+'\','+i+')">'+(t.done?'✓':'')+
-      '</div><input class="task-text '+(t.done?'done':'')+'" value="'+escapeHtml(t.text)+'" onblur="editTaskText(\''+k+'\','+i+',this.value)">'+
-      '<div class="task-type '+typeClass+'" onclick="cycleTaskType(\''+k+'\','+i+')">'+typeLabel+'</div>'+
-      '<div class="prio-badge '+prioClass+'" onclick="cyclePrio(\''+k+'\','+i+')">'+prioLabel+'</div>'+
-      '<div class="duration-inputs">'+
-        '<input type="number" id="durH-'+k+'-'+i+'" placeholder="h" value="'+displayHours+'" class="dur-num" style="width:36px" step="1" min="0">'+
-        '<span>:</span>'+
-        '<input type="number" id="durM-'+k+'-'+i+'" placeholder="m" value="'+displayMins+'" class="dur-num" style="width:36px" step="5" min="0" max="55">'+
-        '<button class="log-time-btn" onclick="logTaskTime(\''+k+'\','+i+')">log</button>'+
-      '</div>'+
-      '<span class="task-duration">'+durText+'</span>'+
-      '<button style="background:none; border:none; color:var(--high); cursor:pointer" onclick="deleteTask(\''+k+'\','+i+')">✕</button>';
+    let displayHours = Math.floor(totalMinutes / 60);
+    let displayMins = totalMinutes % 60;
+    let durText = totalMinutes > 0 ? displayHours + "h " + displayMins + "m" : "0h";
+
+    let row = document.createElement("div");
+    row.className = "task-row";
+    row.innerHTML = '<div class="check ' + (t.done ? 'done' : '') + '" onclick="toggleTaskDone(\'' + k + '\',' + i + ')">' + (t.done ? '✓' : '') +
+      '</div><input class="task-text ' + (t.done ? 'done' : '') + '" value="' + escapeHtml(t.text) + '" onblur="editTaskText(\'' + k + '\',' + i + ',this.value)">' +
+      '<div class="task-type ' + typeClass + '" onclick="cycleTaskType(\'' + k + '\',' + i + ')">' + typeLabel + '</div>' +
+      '<div class="prio-badge ' + prioClass + '" onclick="cyclePrio(\'' + k + '\',' + i + ')">' + prioLabel + '</div>' +
+      '<div class="duration-inputs">' +
+      '<input type="number" id="durH-' + k + '-' + i + '" placeholder="h" value="' + displayHours + '" class="dur-num" style="width:36px" step="1" min="0">' +
+      '<span>:</span>' +
+      '<input type="number" id="durM-' + k + '-' + i + '" placeholder="m" value="' + displayMins + '" class="dur-num" style="width:36px" step="5" min="0" max="55">' +
+      '<button class="log-time-btn" onclick="logTaskTime(\'' + k + '\',' + i + ')">log</button>' +
+      '</div>' +
+      '<span class="task-duration">' + durText + '</span>' +
+      '<button style="background:none; border:none; color:var(--high); cursor:pointer" onclick="deleteTask(\'' + k + '\',' + i + ')">✕</button>';
     container.appendChild(row);
   });
-  let tot=tasks.length,don=tasks.filter(t=>t.done).length; 
-  let fill=document.querySelector("#card-"+k+" .progress-fill"); 
-  if(fill) fill.style.width=tot?Math.round(don/tot*100)+"%":"0%";
+  let tot = tasks.length, don = tasks.filter(t => t.done).length;
+  let fill = document.querySelector("#card-" + k + " .progress-fill");
+  if (fill) fill.style.width = tot ? Math.round(don / tot * 100) + "%" : "0%";
 }
 
-function logTaskTime(k,i){
-  let h=parseInt(document.getElementById("durH-"+k+"-"+i)?.value)||0;
-  let m=parseInt(document.getElementById("durM-"+k+"-"+i)?.value)||0;
-  let newMinutes = (h*60)+m;
+function logTaskTime(k, i) {
+  let h = parseInt(document.getElementById("durH-" + k + "-" + i)?.value) || 0;
+  let m = parseInt(document.getElementById("durM-" + k + "-" + i)?.value) || 0;
+  let newMinutes = (h * 60) + m;
   DB[k].tasks[i].timeSpent = newMinutes;
-  scheduleSync(); 
+  scheduleSync();
   renderDayTasks(k);
 }
 
-function updatePills(k){ 
-  let pills=document.getElementById("pills-"+k); 
-  if(!pills)return; 
-  let tasks=DB[k].tasks||[]; 
-  let prod=tasks.filter(t=>t.type==="productive"&&!t.done).length; 
-  let non=tasks.filter(t=>t.type==="nonproductive"&&!t.done).length; 
-  pills.innerHTML=`${prod?'<span class="pill pill-prod">⚡ '+prod+'</span>':''}${non?'<span class="pill pill-non">🌀 '+non+'</span>':''}`; 
+function updatePills(k) {
+  let pills = document.getElementById("pills-" + k);
+  if (!pills) return;
+  let tasks = DB[k].tasks || [];
+  let prod = tasks.filter(t => t.type === "productive" && !t.done).length;
+  let non = tasks.filter(t => t.type === "nonproductive" && !t.done).length;
+  pills.innerHTML = `${prod ? '<span class="pill pill-prod">⚡ ' + prod + '</span>' : ''}${non ? '<span class="pill pill-non">🌀 ' + non + '</span>' : ''}`;
 }
 
-function addTaskFromInput(k){ 
-  let inp=document.getElementById("newtask-"+k); 
-  let text=inp.value.trim(); 
-  if(!text)return; 
-  let type=document.getElementById("tasktype-"+k).value; 
-  let prio=document.getElementById("prio-"+k).value; 
-  DB[k].tasks.push({text,done:false,type,prio,timeSpent:0}); 
-  inp.value=""; 
-  scheduleSync(); 
-  renderDayTasks(k); 
-  updatePills(k); 
+function addTaskFromInput(k) {
+  let inp = document.getElementById("newtask-" + k);
+  let text = inp.value.trim();
+  if (!text) return;
+  let type = document.getElementById("tasktype-" + k).value;
+  let prio = document.getElementById("prio-" + k).value;
+  DB[k].tasks.push({ text, done: false, type, prio, timeSpent: 0 });
+  inp.value = "";
+  scheduleSync();
+  renderDayTasks(k);
+  updatePills(k);
 }
 
-function toggleTaskDone(k,i){ 
-  DB[k].tasks[i].done=!DB[k].tasks[i].done; 
-  scheduleSync(); 
-  renderDayTasks(k); 
-  updatePills(k); 
+function toggleTaskDone(k, i) {
+  DB[k].tasks[i].done = !DB[k].tasks[i].done;
+  scheduleSync();
+  renderDayTasks(k);
+  updatePills(k);
 }
 
-function editTaskText(k,i,val){ 
-  if(val.trim()) DB[k].tasks[i].text=val; 
-  scheduleSync(); 
-  renderDayTasks(k); 
+function editTaskText(k, i, val) {
+  if (val.trim()) DB[k].tasks[i].text = val;
+  scheduleSync();
+  renderDayTasks(k);
 }
 
-function cycleTaskType(k,i){ 
-  let curr=DB[k].tasks[i].type; 
-  DB[k].tasks[i].type=curr==="productive"?"nonproductive":"productive"; 
-  scheduleSync(); 
-  renderDayTasks(k); 
-  updatePills(k); 
+function cycleTaskType(k, i) {
+  let curr = DB[k].tasks[i].type;
+  DB[k].tasks[i].type = curr === "productive" ? "nonproductive" : "productive";
+  scheduleSync();
+  renderDayTasks(k);
+  updatePills(k);
 }
 
-function cyclePrio(k,i){ 
-  let m={high:"mid",mid:"low",low:"high"}; 
-  DB[k].tasks[i].prio=m[DB[k].tasks[i].prio]; 
-  scheduleSync(); 
-  renderDayTasks(k); 
+function cyclePrio(k, i) {
+  let m = { high: "mid", mid: "low", low: "high" };
+  DB[k].tasks[i].prio = m[DB[k].tasks[i].prio];
+  scheduleSync();
+  renderDayTasks(k);
 }
 
-function deleteTask(k,i){ 
-  DB[k].tasks.splice(i,1); 
-  scheduleSync(); 
-  renderDayTasks(k); 
-  updatePills(k); 
+function deleteTask(k, i) {
+  DB[k].tasks.splice(i, 1);
+  scheduleSync();
+  renderDayTasks(k);
+  updatePills(k);
 }
 
-function updateNote(k){ 
-  DB[k].notes=document.getElementById("notes-"+k).value; 
-  scheduleSync(); 
+function updateNote(k) {
+  DB[k].notes = document.getElementById("notes-" + k).value;
+  scheduleSync();
 }
 
-function renderDayEvents(k){ 
-  let evDiv=document.getElementById("events-list-"+k); 
-  if(!evDiv) return; 
-  let events=DB[k].events||[]; 
-  evDiv.innerHTML=events.map((e,i)=>'<div class="event-item"><div style="background:'+(e.type==='hangout'?'var(--hangout)':e.type==='study'?'var(--study)':'var(--primary)')+'; width:8px;height:8px;border-radius:8px"></div><div style="flex:1"><strong>'+escapeHtml(e.title)+'</strong> '+e.start+'–'+e.end+'</div><button style="background:none;border:none;color:var(--high)" onclick="deleteEvent(\''+k+'\','+i+')">✕</button></div>').join(""); 
+function renderDayEvents(k) {
+  let evDiv = document.getElementById("events-list-" + k);
+  if (!evDiv) return;
+  let events = DB[k].events || [];
+  evDiv.innerHTML = events.map((e, i) => '<div class="event-item"><div style="background:' + (e.type === 'hangout' ? 'var(--hangout)' : e.type === 'study' ? 'var(--study)' : 'var(--primary)') + '; width:8px;height:8px;border-radius:8px"></div><div style="flex:1"><strong>' + escapeHtml(e.title) + '</strong> ' + e.start + '–' + e.end + '</div><button style="background:none;border:none;color:var(--high)" onclick="deleteEvent(\'' + k + '\',' + i + ')">✕</button></div>').join("");
 }
 
-function deleteEvent(k,i){ 
-  DB[k].events.splice(i,1); 
-  scheduleSync(); 
-  renderDayEvents(k); 
-  renderCalendar(); 
+function deleteEvent(k, i) {
+  DB[k].events.splice(i, 1);
+  scheduleSync();
+  renderDayEvents(k);
+  renderCalendar();
 }
 
-function addPanelEvent(){ 
-  let k=document.getElementById("panelDateTitle").getAttribute("data-key"); 
-  if(!k)return; 
-  let title=document.getElementById("panelEventTitle").value.trim(); 
-  if(!title)return; 
-  let start=document.getElementById("panelStart").value; 
-  let end=document.getElementById("panelEnd").value; 
-  ensureDay(k); 
-  DB[k].events.push({title,start,end,type:panelType}); 
-  scheduleSync(); 
-  renderDayEvents(k); 
-  renderCalendar(); 
-  closeSidePanel(); 
+function addPanelEvent() {
+  let k = document.getElementById("panelDateTitle").getAttribute("data-key");
+  if (!k) return;
+  let title = document.getElementById("panelEventTitle").value.trim();
+  if (!title) return;
+  let start = document.getElementById("panelStart").value;
+  let end = document.getElementById("panelEnd").value;
+  ensureDay(k);
+  DB[k].events.push({ title, start, end, type: panelType });
+  scheduleSync();
+  renderDayEvents(k);
+  renderCalendar();
+  closeSidePanel();
 }
 
-function setPanelType(t){ panelType=t; }
+function setPanelType(t) { panelType = t; }
 
-function openSidePanel(k){ 
-  document.getElementById("panelDateTitle").innerHTML=k; 
-  document.getElementById("panelDateTitle").setAttribute("data-key",k); 
-  document.getElementById("panelEventTitle").value=""; 
-  document.getElementById("panelStart").value="12:00"; 
-  document.getElementById("panelEnd").value="13:00"; 
-  document.getElementById("sidePanel").classList.add("open"); 
+function openSidePanel(k) {
+  document.getElementById("panelDateTitle").innerHTML = k;
+  document.getElementById("panelDateTitle").setAttribute("data-key", k);
+  document.getElementById("panelEventTitle").value = "";
+  document.getElementById("panelStart").value = "12:00";
+  document.getElementById("panelEnd").value = "13:00";
+  document.getElementById("sidePanel").classList.add("open");
 }
 
-function closeSidePanel(){ 
-  document.getElementById("sidePanel").classList.remove("open"); 
+function closeSidePanel() {
+  document.getElementById("sidePanel").classList.remove("open");
 }
 
-function renderCalendar(){
+function renderCalendar() {
   let container = document.getElementById("calendarContainer");
   container.innerHTML = "";
-  
-  if(calViewMode === "month") {
+
+  if (calViewMode === "month") {
     renderMonthView(container);
-  } else if(calViewMode === "week") {
+  } else if (calViewMode === "week") {
     renderWeekView(container);
-  } else if(calViewMode === "day") {
+  } else if (calViewMode === "day") {
     renderDayView(container);
   }
 }
 
 function renderMonthView(container) {
-  let year=currentCalMonth.getFullYear(), month=currentCalMonth.getMonth();
-  let first=new Date(year,month,1); 
-  let last=new Date(year,month+1,0);
-  let startOffset=first.getDay(); 
-  startOffset=startOffset===0?6:startOffset-1;
-  
+  let year = currentCalMonth.getFullYear(), month = currentCalMonth.getMonth();
+  let first = new Date(year, month, 1);
+  let last = new Date(year, month + 1, 0);
+  let startOffset = first.getDay();
+  startOffset = startOffset === 0 ? 6 : startOffset - 1;
+
   let html = '<div class="month-view"><div class="month-weekdays"><div class="month-weekday">Mon</div><div class="month-weekday">Tue</div><div class="month-weekday">Wed</div><div class="month-weekday">Thu</div><div class="month-weekday">Fri</div><div class="month-weekday">Sat</div><div class="month-weekday">Sun</div></div><div class="month-days">';
-  
-  for(let i=0;i<startOffset;i++){ 
-    let d=new Date(year,month,0-startOffset+i+1); 
-    html+='<div class="month-cell other-month"><div class="month-day-num">'+d.getDate()+'</div></div>'; 
+
+  for (let i = 0; i < startOffset; i++) {
+    let d = new Date(year, month, 0 - startOffset + i + 1);
+    html += '<div class="month-cell other-month"><div class="month-day-num">' + d.getDate() + '</div></div>';
   }
-  
-  for(let day=1;day<=last.getDate();day++){ 
-    let d=new Date(year,month,day); 
-    let k=dkey(d); 
-    let events=DB[k]?.events||[]; 
-    let isToday=k===todayKey(); 
-    let evHtml=events.slice(0,3).map(e=>'<div class="month-event">'+e.start+' '+escapeHtml(e.title).slice(0,20)+'</div>').join(""); 
-    html+='<div class="month-cell '+(isToday?"today":"")+'" onclick="openSidePanel(\''+k+'\')"><div class="month-day-num">'+day+'</div><div class="month-events">'+evHtml+(events.length>3?'<div class="month-event">+'+(events.length-3)+' more</div>':'')+'</div></div>'; 
+
+  for (let day = 1; day <= last.getDate(); day++) {
+    let d = new Date(year, month, day);
+    let k = dkey(d);
+    let events = DB[k]?.events || [];
+    let isToday = k === todayKey();
+    let evHtml = events.map(e => {
+      let color = getTaskColor(e.title);
+      return '<div class="month-event" style="background:' + color + '22; color:' + color + '; border-left:3px solid ' + color + '">' + escapeHtml(e.title) + '</div>';
+    }).join("");
+    html += '<div class="month-cell ' + (isToday ? "today" : "") + '" onclick="openSidePanel(\'' + k + '\')"><div class="month-day-num">' + day + '</div><div class="month-events">' + evHtml + (events.length > 3 ? '<div class="month-event" style="color:var(--text3)">+' + (events.length - 3) + ' more</div>' : '') + '</div></div>';
   }
-  
+
   html += '</div></div>';
-  document.getElementById("monthYearLabel").innerHTML=`${first.toLocaleString('default',{month:'long'})} ${year}`;
+  document.getElementById("monthYearLabel").innerHTML = `${first.toLocaleString('default', { month: 'long' })} ${year}`;
   container.innerHTML = html;
 }
 
 function renderWeekView(container) {
   let weekDates = getWeekDates(currentCalMonth);
   let html = '<div class="calendar-container"><div class="calendar-header">';
-  
+
   html += '<div class="calendar-header-cell time">Time</div>';
   weekDates.forEach(d => {
     let isT = dkey(d) === todayKey();
-    html += '<div class="calendar-header-cell '+(isT?'today':'')+'">' + d.toLocaleDateString('en-GB',{weekday:'short'}) + '<br>' + d.getDate() + '</div>';
+    html += '<div class="calendar-header-cell ' + (isT ? 'today' : '') + '">' + d.toLocaleDateString('en-GB', { weekday: 'short' }) + '<br>' + d.getDate() + '</div>';
   });
-  
+
   html += '</div><div class="calendar-body">';
-  
-  for(let hour=0; hour<24; hour++) {
-    let timeStr = hour.toString().padStart(2,'0') + ':00';
+
+  for (let hour = 0; hour < 24; hour++) {
+    let timeStr = hour.toString().padStart(2, '0') + ':00';
     html += '<div class="time-slot">' + timeStr + '</div>';
-    
+
     weekDates.forEach(d => {
       let k = dkey(d);
-      let events = DB[k]?.events||[];
+      let events = DB[k]?.events || [];
       let eventsInHour = events.filter(e => {
-        let [h,m] = e.start.split(':').map(Number);
+        let [h, m] = e.start.split(':').map(Number);
         return h === hour;
       });
-      
+
       let evHtml = eventsInHour.map(e => {
-        let [sh,sm] = e.start.split(':').map(Number);
-        let [eh,em] = e.end.split(':').map(Number);
-        let duration = Math.max(1, (eh-sh) || 1);
-        let top = (sm/60)*60;
-        return '<div class="event-block '+e.type+'" style="top:'+top+'px; height:'+(duration*60)+'px" onclick="event.stopPropagation()" title="'+escapeHtml(e.title)+'"><button class="event-delete" onclick="deleteEventFromCal(\''+k+'\','+events.indexOf(e)+', event)">✕</button><div class="event-time">'+e.start+'-'+e.end+'</div><div class="event-title">'+escapeHtml(e.title)+'</div></div>';
+        let [sh, sm] = e.start.split(':').map(Number);
+        let [eh, em] = e.end.split(':').map(Number);
+        let duration = Math.max(1, (eh - sh) || 1);
+        let top = (sm / 60) * 60;
+        let color = getTaskColor(e.title);
+        return '<div class="event-block week-day-view" style="top:' + top + 'px; height:' + (duration * 60) + 'px; background:' + color + '22; border-color:' + color + '; color:' + color + '" onclick="event.stopPropagation()" title="' + escapeHtml(e.title) + '"><button class="event-delete" onclick="deleteEventFromCal(\'' + k + '\',' + events.indexOf(e) + ', event)">✕</button><div class="event-title">' + escapeHtml(e.title) + '</div></div>';
       }).join("");
-      
-      html += '<div class="day-column"><div class="hour-slot" onclick="openSidePanel(\''+k+'\')">'+evHtml+'</div></div>';
+
+      html += '<div class="day-column"><div class="hour-slot" onclick="openSidePanel(\'' + k + '\')">' + evHtml + '</div></div>';
     });
   }
-  
+
   html += '</div></div>';
-  document.getElementById("monthYearLabel").innerHTML = 'Week of ' + weekDates[0].toLocaleDateString('en-GB',{month:'short', day:'numeric'});
+  document.getElementById("monthYearLabel").innerHTML = 'Week of ' + weekDates[0].toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
   container.innerHTML = html;
 }
 
 function renderDayView(container) {
   let k = dkey(currentCalMonth);
-  let events = DB[k]?.events||[];
-  
+  let events = DB[k]?.events || [];
+
   let html = '<div class="calendar-container"><div class="calendar-header">';
   html += '<div class="calendar-header-cell time">Time</div>';
-  html += '<div class="calendar-header-cell">'+currentCalMonth.toLocaleDateString('en-GB',{weekday:'long', month:'short', day:'numeric'})+'</div>';
+  html += '<div class="calendar-header-cell">' + currentCalMonth.toLocaleDateString('en-GB', { weekday: 'long', month: 'short', day: 'numeric' }) + '</div>';
   html += '</div><div class="calendar-body">';
-  
-  for(let hour=0; hour<24; hour++) {
-    let timeStr = hour.toString().padStart(2,'0') + ':00';
+
+  for (let hour = 0; hour < 24; hour++) {
+    let timeStr = hour.toString().padStart(2, '0') + ':00';
     html += '<div class="time-slot">' + timeStr + '</div>';
-    
+
     let eventsInHour = events.filter(e => {
-      let [h,m] = e.start.split(':').map(Number);
+      let [h, m] = e.start.split(':').map(Number);
       return h === hour;
     });
-    
-    let evHtml = eventsInHour.map((e,idx) => {
-      let [sh,sm] = e.start.split(':').map(Number);
-      let [eh,em] = e.end.split(':').map(Number);
-      let duration = Math.max(1, (eh-sh) || 1);
-      let top = (sm/60)*60;
+
+    let evHtml = eventsInHour.map((e, idx) => {
+      let [sh, sm] = e.start.split(':').map(Number);
+      let [eh, em] = e.end.split(':').map(Number);
+      let duration = Math.max(1, (eh - sh) || 1);
+      let top = (sm / 60) * 60;
       let left = (idx * 45) + 2;
-      return '<div class="event-block '+e.type+'" style="top:'+top+'px; height:'+(duration*60)+'px; left:'+left+'px; right:auto; width:40%" onclick="event.stopPropagation()" title="'+escapeHtml(e.title)+'"><button class="event-delete" onclick="deleteEventFromCal(\''+k+'\','+events.indexOf(e)+', event)">✕</button><div class="event-time">'+e.start+'-'+e.end+'</div><div class="event-title">'+escapeHtml(e.title)+'</div></div>';
+      let color = getTaskColor(e.title);
+      return '<div class="event-block week-day-view" style="top:' + top + 'px; height:' + (duration * 60) + 'px; left:' + left + 'px; right:auto; width:40%; background:' + color + '22; border-color:' + color + '; color:' + color + '" onclick="event.stopPropagation()" title="' + escapeHtml(e.title) + '"><button class="event-delete" onclick="deleteEventFromCal(\'' + k + '\',' + events.indexOf(e) + ', event)">✕</button><div class="event-title">' + escapeHtml(e.title) + '</div></div>';
     }).join("");
-    
-    html += '<div class="day-column" style="grid-column: 2;"><div class="hour-slot" onclick="openSidePanel(\''+k+'\')">'+evHtml+'</div></div>';
+
+    html += '<div class="day-column" style="grid-column: 2;"><div class="hour-slot" onclick="openSidePanel(\'' + k + '\')">' + evHtml + '</div></div>';
   }
-  
+
   html += '</div></div>';
-  document.getElementById("monthYearLabel").innerHTML = currentCalMonth.toLocaleDateString('en-GB',{weekday:'long', month:'short', day:'numeric'});
+  document.getElementById("monthYearLabel").innerHTML = currentCalMonth.toLocaleDateString('en-GB', { weekday: 'long', month: 'short', day: 'numeric' });
   container.innerHTML = html;
 }
 
 function deleteEventFromCal(k, idx, event) {
   event.stopPropagation();
-  if(DB[k] && DB[k].events && DB[k].events[idx]) {
+  if (DB[k] && DB[k].events && DB[k].events[idx]) {
     DB[k].events.splice(idx, 1);
     scheduleSync();
     renderCalendar();
@@ -895,40 +785,40 @@ function deleteEventFromCal(k, idx, event) {
   }
 }
 
-function parseDateFromText(text, baseDate=new Date()){
-  let lower=text.toLowerCase();
-  if(lower.includes("tomorrow")){ 
-    let d=new Date(baseDate); 
-    d.setDate(d.getDate()+1); 
-    return dkey(d); 
+function parseDateFromText(text, baseDate = new Date()) {
+  let lower = text.toLowerCase();
+  if (lower.includes("tomorrow")) {
+    let d = new Date(baseDate);
+    d.setDate(d.getDate() + 1);
+    return dkey(d);
   }
-  let weekdays=["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
-  for(let i=0;i<weekdays.length;i++) {
-    if(lower.includes(weekdays[i])){ 
-      let d=new Date(baseDate); 
-      let currDow=d.getDay(); 
-      let targetDow=i+1; 
-      let diff=targetDow-currDow; 
-      if(diff<=0) diff+=7; 
-      d.setDate(d.getDate()+diff); 
-      return dkey(d); 
+  let weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  for (let i = 0; i < weekdays.length; i++) {
+    if (lower.includes(weekdays[i])) {
+      let d = new Date(baseDate);
+      let currDow = d.getDay();
+      let targetDow = i + 1;
+      let diff = targetDow - currDow;
+      if (diff <= 0) diff += 7;
+      d.setDate(d.getDate() + diff);
+      return dkey(d);
     }
   }
   return dkey(baseDate);
 }
 
-async function aiPlanTasks(){
-  let inp=document.getElementById("aiTaskInput").value.trim(); 
-  if(!inp) return;
-  let resp=document.getElementById("aiTaskResp"); 
-  resp.classList.add("show"); 
-  resp.innerHTML="📅 understanding your tasks...";
+async function aiPlanTasks() {
+  let inp = document.getElementById("aiTaskInput").value.trim();
+  if (!inp) return;
+  let resp = document.getElementById("aiTaskResp");
+  resp.classList.add("show");
+  resp.innerHTML = "📅 understanding your tasks...";
 
   let today = new Date();
   let todayStr = today.toISOString().split('T')[0];
   let currentYear = today.getFullYear();
 
-  let systemPrompt = `You are a planner assistant. Today's date is ${todayStr} (${today.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long', year:'numeric'})}).
+  let systemPrompt = `You are a planner assistant. Today's date is ${todayStr} (${today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}).
 
 The user will describe tasks using the format: [Task name] from [time] to [time] on [date] [month]
 Example input: "Gym from 6pm to 9pm on 14 June"
@@ -944,8 +834,8 @@ Parse every task mentioned and return ONLY a JSON array, no markdown, no explana
 }
 
 Rules:
-- Convert "6pm" :"18:00", "9pm" :"21:00", "2pm" :"14:00", "6am" :"06:00" etc.
-- If month has no year, use ${currentYear} unless that date has already passed, then use ${currentYear+1}.
+- Convert "6pm" to "18:00", "9pm" to "21:00", "2pm" to "14:00", "6am" to "06:00" etc.
+- If month has no year, use ${currentYear} unless that date has already passed, then use ${currentYear + 1}.
 - Default type is "productive", default prio is "mid".
 - If input contains multiple tasks (comma/semicolon separated), return all of them.
 - Return ONLY the JSON array, nothing else.`;
@@ -963,58 +853,58 @@ Rules:
     });
 
     let data = await apiResp.json();
-    let raw = data.content?.map(b => b.text||"").join("").trim();
-    raw = raw.replace(/```json|```/g,"").trim();
+    let raw = data.content?.map(b => b.text || "").join("").trim();
+    raw = raw.replace(/```json|```/g, "").trim();
 
     let tasks;
-    try { tasks = JSON.parse(raw); } catch(e) {
-      resp.innerHTML = "❌ Couldn't parse that. Use: <em>Gym from 6pm to 9pm on 14 June</em>"; 
-      return; 
+    try { tasks = JSON.parse(raw); } catch (e) {
+      resp.innerHTML = "❌ Couldn't parse that. Use: <em>Gym from 6pm to 9pm on 14 June</em>";
+      return;
     }
-    if(!Array.isArray(tasks) || tasks.length===0){
-      resp.innerHTML = "❌ No tasks found. Use: <em>Gym from 6pm to 9pm on 14 June</em>"; 
+    if (!Array.isArray(tasks) || tasks.length === 0) {
+      resp.innerHTML = "❌ No tasks found. Use: <em>Gym from 6pm to 9pm on 14 June</em>";
       return;
     }
 
     let added = 0;
-    for(let t of tasks){
-      if(!t.date || !t.text) continue;
+    for (let t of tasks) {
+      if (!t.date || !t.text) continue;
       ensureDay(t.date);
       DB[t.date].tasks.push({
         text: t.text,
         done: false,
-        type: t.type||"productive",
-        prio: t.prio||"mid",
+        type: t.type || "productive",
+        prio: t.prio || "mid",
         timeSpent: 0,
-        startTime: t.startTime||"",
-        endTime: t.endTime||""
+        startTime: t.startTime || "",
+        endTime: t.endTime || ""
       });
       added++;
     }
 
     scheduleSync();
     renderTasks();
-    let preview = tasks.map(t=>`<strong>${t.text}</strong> on ${t.date}${t.startTime?' ('+t.startTime+'-'+t.endTime+')':''}`).join(", ");
+    let preview = tasks.map(t => `<strong>${escapeHtml(t.text)}</strong> on ${t.date}${t.startTime ? ' (' + t.startTime + '-' + t.endTime + ')' : ''}`).join(", ");
     resp.innerHTML = `✓ added ${added} task(s): ${preview}`;
-    document.getElementById("aiTaskInput").value="";
+    document.getElementById("aiTaskInput").value = "";
 
-  } catch(err) {
+  } catch (err) {
     resp.innerHTML = "❌ Error: " + err.message;
   }
 }
 
-async function aiScheduleCal(){
-  let inp=document.getElementById("aiCalInput").value.trim(); 
-  if(!inp) return;
-  let resp=document.getElementById("aiCalResp"); 
-  resp.classList.add("show"); 
-  resp.innerHTML="⏰ scheduling your events...";
+async function aiScheduleCal() {
+  let inp = document.getElementById("aiCalInput").value.trim();
+  if (!inp) return;
+  let resp = document.getElementById("aiCalResp");
+  resp.classList.add("show");
+  resp.innerHTML = "⏰ scheduling your events...";
 
   let today = new Date();
   let todayStr = today.toISOString().split('T')[0];
   let currentYear = today.getFullYear();
 
-  let systemPrompt = `You are a calendar scheduling assistant. Today's date is ${todayStr} (${today.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long', year:'numeric'})}).
+  let systemPrompt = `You are a calendar scheduling assistant. Today's date is ${todayStr} (${today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}).
 
 The user will describe events using the format: [Event name] from [time] to [time] on [date] [month]
 Example input: "Gym from 6pm to 9pm on 14 June"
@@ -1030,7 +920,7 @@ Parse every event mentioned and return ONLY a JSON array, no markdown, no explan
 
 Rules:
 - Convert "6pm" to "18:00", "9pm" to "21:00", "2pm" to "14:00", "6am" to "06:00" etc.
-- If month has no year, use ${currentYear} unless that date has already passed, then use ${currentYear+1}.
+- If month has no year, use ${currentYear} unless that date has already passed, then use ${currentYear + 1}.
 - Default type is "main". Use "study" for academic/learning events, "hangout" for social events.
 - If input contains multiple events (comma or semicolon separated), return all of them.
 - If user says "daily" or "every day", create 7 entries starting from tomorrow with consecutive dates.
@@ -1049,142 +939,143 @@ Rules:
     });
 
     let data = await apiResp.json();
-    let raw = data.content?.map(b => b.text||"").join("").trim();
-    raw = raw.replace(/```json|```/g,"").trim();
+    let raw = data.content?.map(b => b.text || "").join("").trim();
+    raw = raw.replace(/```json|```/g, "").trim();
 
     let events;
-    try { events = JSON.parse(raw); } catch(e) {
-      resp.innerHTML = "❌ Couldn't parse that. Use: <em>Gym from 6pm to 9pm on 14 June</em>"; 
-      return; 
+    try { events = JSON.parse(raw); } catch (e) {
+      resp.innerHTML = "❌ Couldn't parse that. Use: <em>Gym from 6pm to 9pm on 14 June</em>";
+      return;
     }
-    if(!Array.isArray(events) || events.length===0){
-      resp.innerHTML = "❌ No events found. Use: <em>Gym from 6pm to 9pm on 14 June</em>"; 
+    if (!Array.isArray(events) || events.length === 0) {
+      resp.innerHTML = "❌ No events found. Use: <em>Gym from 6pm to 9pm on 14 June</em>";
       return;
     }
 
     let added = 0;
-    for(let ev of events){
-      if(!ev.date || !ev.title || !ev.start || !ev.end) continue;
+    for (let ev of events) {
+      if (!ev.date || !ev.title || !ev.start || !ev.end) continue;
       ensureDay(ev.date);
       DB[ev.date].events.push({
         title: ev.title,
         start: ev.start,
         end: ev.end,
-        type: ev.type||"main"
+        type: ev.type || "main"
       });
       added++;
     }
 
     scheduleSync();
     renderCalendar();
-    let preview = events.map(ev=>`<strong>${escapeHtml(ev.title)}</strong> on ${ev.date} (${ev.start}–${ev.end})`).join(", ");
+    let preview = events.map(ev => `<strong>${escapeHtml(ev.title)}</strong> on ${ev.date} (${ev.start}–${ev.end})`).join(", ");
     resp.innerHTML = `✓ added ${added} event(s): ${preview}`;
-    document.getElementById("aiCalInput").value="";
+    document.getElementById("aiCalInput").value = "";
 
-  } catch(err) {
+  } catch (err) {
     resp.innerHTML = "❌ Error: " + err.message;
   }
 }
 
-function fullRender(){ 
-  renderTasks(); 
-  renderCalendar(); 
-  renderProgressSection(); 
+function fullRender() {
+  renderTasks();
+  renderCalendar();
+  renderProgressSection();
+  renderGlobalStats();
 }
 
-function setFocusDate(dateStr){ 
-  let d=new Date(dateStr+"T12:00:00"); 
-  if(!isNaN(d)) currentFocusDate=d; 
-  renderTasks(); 
+function setFocusDate(dateStr) {
+  let d = new Date(dateStr + "T12:00:00");
+  if (!isNaN(d)) currentFocusDate = d;
+  renderTasks();
 }
 
-function toggleDay(k){ 
-  document.getElementById("card-"+k).classList.toggle("open"); 
+function toggleDay(k) {
+  document.getElementById("card-" + k).classList.toggle("open");
 }
 
-function escapeHtml(s){ 
-  return s.replace(/[&<>]/g,m=>{
-    if(m==='&')return'&amp;';
-    if(m==='<')return'&lt;';
-    return'&gt;';
-  }); 
+function escapeHtml(s) {
+  return s.replace(/[&<>]/g, m => {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    return '&gt;';
+  });
 }
 
-document.getElementById("prevDayBtn")?.addEventListener("click",()=>{ 
-  let d=new Date(currentFocusDate); 
-  d.setDate(d.getDate()-1); 
-  currentFocusDate=d; 
-  renderTasks(); 
+document.getElementById("prevDayBtn")?.addEventListener("click", () => {
+  let d = new Date(currentFocusDate);
+  d.setDate(d.getDate() - 1);
+  currentFocusDate = d;
+  renderTasks();
 });
 
-document.getElementById("nextDayBtn")?.addEventListener("click",()=>{ 
-  let d=new Date(currentFocusDate); 
-  d.setDate(d.getDate()+1); 
-  currentFocusDate=d; 
-  renderTasks(); 
+document.getElementById("nextDayBtn")?.addEventListener("click", () => {
+  let d = new Date(currentFocusDate);
+  d.setDate(d.getDate() + 1);
+  currentFocusDate = d;
+  renderTasks();
 });
 
-document.getElementById("todayTasksBtn")?.addEventListener("click",()=>{ 
-  currentFocusDate=new Date(); 
-  renderTasks(); 
+document.getElementById("todayTasksBtn")?.addEventListener("click", () => {
+  currentFocusDate = new Date();
+  renderTasks();
 });
 
-document.querySelectorAll(".mode[data-mode]").forEach(b=>b.addEventListener("click",function(){ 
-  viewMode=this.dataset.mode; 
-  document.querySelectorAll(".mode[data-mode]").forEach(m=>m.classList.remove("active")); 
-  this.classList.add("active"); 
-  renderTasks(); 
+document.querySelectorAll(".mode[data-mode]").forEach(b => b.addEventListener("click", function () {
+  viewMode = this.dataset.mode;
+  document.querySelectorAll(".mode[data-mode]").forEach(m => m.classList.remove("active"));
+  this.classList.add("active");
+  renderTasks();
 }));
 
-document.getElementById("prevMonthBtn")?.addEventListener("click",()=>{ 
-  currentCalMonth.setMonth(currentCalMonth.getMonth()-1); 
-  renderCalendar(); 
+document.getElementById("prevMonthBtn")?.addEventListener("click", () => {
+  currentCalMonth.setMonth(currentCalMonth.getMonth() - 1);
+  renderCalendar();
 });
 
-document.getElementById("nextMonthBtn")?.addEventListener("click",()=>{ 
-  currentCalMonth.setMonth(currentCalMonth.getMonth()+1); 
-  renderCalendar(); 
+document.getElementById("nextMonthBtn")?.addEventListener("click", () => {
+  currentCalMonth.setMonth(currentCalMonth.getMonth() + 1);
+  renderCalendar();
 });
 
-document.getElementById("todayCalBtn")?.addEventListener("click",()=>{ 
-  currentCalMonth=new Date(); 
-  renderCalendar(); 
+document.getElementById("todayCalBtn")?.addEventListener("click", () => {
+  currentCalMonth = new Date();
+  renderCalendar();
 });
 
-document.querySelectorAll(".mode[data-calmode]").forEach(b=>b.addEventListener("click",function(){ 
-  calViewMode=this.dataset.calmode; 
-  document.querySelectorAll(".mode[data-calmode]").forEach(m=>m.classList.remove("active")); 
-  this.classList.add("active"); 
-  renderCalendar(); 
+document.querySelectorAll(".mode[data-calmode]").forEach(b => b.addEventListener("click", function () {
+  calViewMode = this.dataset.calmode;
+  document.querySelectorAll(".mode[data-calmode]").forEach(m => m.classList.remove("active"));
+  this.classList.add("active");
+  renderCalendar();
 }));
 
-document.getElementById("aiTaskRun")?.addEventListener("click",aiPlanTasks);
-document.getElementById("aiCalRun")?.addEventListener("click",aiScheduleCal);
+document.getElementById("aiTaskRun")?.addEventListener("click", aiPlanTasks);
+document.getElementById("aiCalRun")?.addEventListener("click", aiScheduleCal);
 
-document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",function(){ 
-  let v=this.dataset.tab; 
-  document.querySelectorAll(".view").forEach(vw=>vw.classList.remove("active")); 
-  document.getElementById(v+"View").classList.add("active"); 
-  document.querySelectorAll(".tab").forEach(tt=>tt.classList.remove("active")); 
-  this.classList.add("active"); 
-  if(v==="progress") renderProgressSection(); 
-  if(v==="calendar") renderCalendar(); 
-  if(v==="tasks") renderTasks(); 
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", function () {
+  let v = this.dataset.tab;
+  document.querySelectorAll(".view").forEach(vw => vw.classList.remove("active"));
+  document.getElementById(v + "View").classList.add("active");
+  document.querySelectorAll(".tab").forEach(tt => tt.classList.remove("active"));
+  this.classList.add("active");
+  if (v === "progress") renderProgressSection();
+  if (v === "calendar") renderCalendar();
+  if (v === "tasks") renderTasks();
 }));
 
-function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
-function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
 
 let savedKey = lsGet("planner_key");
-if(savedKey){
-  apiKey=savedKey;
-  binId=lsGet("planner_bin")||"";
+if (savedKey) {
+  apiKey = savedKey;
+  binId = lsGet("planner_bin") || "";
   loadFromCloud();
 } else {
   let key = null;
-  try { key = prompt("Enter JSONbin.io API key (free cross-device sync) — or leave empty to work offline:"); } catch(e){}
-  if(key && key.trim()){
-    apiKey=key.trim();
+  try { key = prompt("Enter JSONbin.io API key (free cross-device sync) — or leave empty to work offline:"); } catch (e) { }
+  if (key && key.trim()) {
+    apiKey = key.trim();
     lsSet("planner_key", apiKey);
     loadFromCloud();
   } else {
@@ -1193,26 +1084,26 @@ if(savedKey){
   }
 }
 
-window.closeSidePanel=closeSidePanel; 
-window.addPanelEvent=addPanelEvent; 
-window.setPanelType=setPanelType; 
-window.deleteEvent=deleteEvent; 
-window.deleteEventFromCal=deleteEventFromCal;
-window.toggleDay=toggleDay; 
-window.addTaskFromInput=addTaskFromInput; 
-window.toggleTaskDone=toggleTaskDone; 
-window.editTaskText=editTaskText; 
-window.cycleTaskType=cycleTaskType; 
-window.cyclePrio=cyclePrio; 
-window.deleteTask=deleteTask; 
-window.updateNote=updateNote; 
-window.logTaskTime=logTaskTime; 
-window.setFocusDate=setFocusDate; 
-window.cycleTopicStatus=cycleTopicStatus; 
-window.updateTopicHours=updateTopicHours; 
-window.cycleSubStatus=cycleSubStatus; 
-window.updateSubHours=updateSubHours;
-window.openSidePanel=openSidePanel;
+window.closeSidePanel = closeSidePanel;
+window.addPanelEvent = addPanelEvent;
+window.setPanelType = setPanelType;
+window.deleteEvent = deleteEvent;
+window.deleteEventFromCal = deleteEventFromCal;
+window.toggleDay = toggleDay;
+window.addTaskFromInput = addTaskFromInput;
+window.toggleTaskDone = toggleTaskDone;
+window.editTaskText = editTaskText;
+window.cycleTaskType = cycleTaskType;
+window.cyclePrio = cyclePrio;
+window.deleteTask = deleteTask;
+window.updateNote = updateNote;
+window.logTaskTime = logTaskTime;
+window.setFocusDate = setFocusDate;
+window.cycleTopicStatus = cycleTopicStatus;
+window.updateTopicHours = updateTopicHours;
+window.cycleSubStatus = cycleSubStatus;
+window.updateSubHours = updateSubHours;
+window.openSidePanel = openSidePanel;
 </script>
 </body>
 </html>
