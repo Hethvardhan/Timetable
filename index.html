@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>Calendar Planner</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght=500;700;800&family=Outfit:wght=300;400;500;600&family=JetBrains+Mono:wght=400;500;600&display=swap" rel="stylesheet">
+  <title>planner · tasks + calendar + progress</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     :root {
@@ -20,48 +20,47 @@
     }
     body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; line-height: 1.5; }
     .topbar { position: sticky; top:0; background: rgba(9,12,21,0.95); backdrop-filter: blur(14px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:60px; z-index:200; }
-    .logo { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; letter-spacing:-0.3px; }
-    .logo span { color:var(--primary); }
-    .tabs { display:flex; gap:6px; background:var(--bg3); padding:3px; border-radius:40px; }
+    .logo { width: 60px; } /* Removed text, acts as a layout spacer to balance the right sync bar */
+    .tabs { display:flex; gap:6px; background:var(--bg3); padding:3px; border-radius:40px; margin: 0 auto; }
     .tab { background:transparent; border:none; padding:6px 18px; border-radius:32px; font-weight:500; color:var(--text2); cursor:pointer; transition:0.2s; }
     .tab.active { background:var(--primary-bg); color:var(--primary); }
     .sync-area { display:flex; align-items:center; gap:10px; }
     .sync-dot { width:12px; height:12px; border-radius:10px; background:var(--low); }
     .sync-dot.saving { background:var(--mid); animation:pulse 0.9s infinite; }
     .sync-dot.error { background:var(--high); }
+    #syncLabel { font-size:13px !important; font-weight:600; color:var(--text2) !important; display: flex; align-items: center; gap: 4px; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-    .view { display:none; padding:20px 18px 80px; max-width:1400px; margin:0 auto; }
+    .view { display:none; padding:20px 18px 80px; max-width:1200px; margin:0 auto; }
     .view.active { display:block; }
-    .stat-row { display:flex; gap:10px; overflow-x:auto; margin-bottom:20px; }
-    .stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:8px 18px; min-width:90px; }
+    .stat-row { display:flex; gap:10px; overflow-x:auto; margin-bottom:20px; justify-content: center; }
+    .stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:8px 18px; min-width:90px; text-align: center; }
     .stat-num { font-family:'JetBrains Mono', monospace; font-size:26px; font-weight:500; font-feature-settings:"tnum"; }
     .stat-label { font-size:10px; font-family:'JetBrains Mono'; color:var(--text3); text-transform:uppercase; }
     .date-nav { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin:16px 0; }
-    .nav-group { display:flex; gap:8px; align-items:center; }
+    .nav-group { display:flex; gap:8px; align-items:center; margin: 0 auto; }
     .nav-btn { background:var(--bg2); border:1px solid var(--border); border-radius:40px; padding:6px 14px; font-size:13px; cursor:pointer; transition:0.2s; color:var(--primary); }
     .nav-btn:hover { border-color:var(--primary); background:var(--primary-bg); }
-    .day-label { font-family:'Syne',sans-serif; font-weight:700; font-size:15px; }
-    .mode-group { display:flex; gap:6px; }
-    .mode { background:var(--bg2); border:1px solid var(--border); border-radius:40px; padding:6px 14px; font-family:'JetBrains Mono'; font-size:12px; cursor:pointer; color:var(--text2); }
-    .mode.active { background:var(--primary-bg); border-color:var(--primary); color:var(--primary); }
+    .day-label { font-family:'Syne',sans-serif; font-weight:700; font-size:16px; margin: 0 10px; }
+    .mode-group { display:none; } /* Hidden to enforce clean view centralization */
     .week-strip { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:20px; }
     .strip-cell { background:var(--bg2); border:1px solid var(--border); border-radius:18px; text-align:center; padding:8px 4px; cursor:pointer; }
     .strip-cell.today { border-color:var(--productive); }
     .strip-day { font-size:10px; color:var(--text3); text-transform:uppercase; }
     .strip-date { font-family:'Syne'; font-weight:800; font-size:16px; }
-    .ai-bar { background:var(--bg2); border:1px solid var(--primary-border); border-radius:60px; padding:6px 12px 6px 18px; display:flex; gap:10px; margin-bottom:20px; }
+    .ai-bar { background:var(--bg2); border:1px solid var(--primary-border); border-radius:60px; padding:6px 12px 6px 18px; display:flex; gap:10px; margin: 20px auto; max-width: 700px; width: 100%; }
     .ai-input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:13px; }
     .ai-btn { background:var(--primary-bg); border:none; padding:6px 20px; border-radius:60px; color:var(--primary); font-weight:600; cursor:pointer; }
-    .ai-resp { background:var(--bg3); border-left:3px solid var(--primary); border-radius:16px; padding:14px; margin-bottom:18px; font-size:13px; color:var(--text2); display:none; }
+    .ai-resp { background:var(--bg3); border-left:3px solid var(--primary); border-radius:16px; padding:14px; margin: 0 auto 18px; max-width: 700px; font-size:13px; color:var(--text2); display:none; text-align: center; }
     .ai-resp.show { display:block; }
-    .day-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; margin-bottom:14px; overflow:hidden; }
+    .day-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; margin: 0 auto 14px; max-width: 800px; overflow:hidden; }
     .card-header { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; }
     .badge { width:56px; height:56px; background:var(--bg3); border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .badge.today { background:var(--productive-bg); border:1px solid var(--productive); }
     .badge-weekday { font-size:9px; color:var(--text3); text-transform:uppercase; }
     .badge-date { font-family:'Syne'; font-size:22px; font-weight:800; }
-    .day-info { flex:1; }
-    .pill-strip { display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; }
+    .day-info { flex:1; text-align: center; }
+    .day-title { font-family:'Syne', sans-serif; font-weight:700; font-size:16px; }
+    .pill-strip { display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; justify-content: center; }
     .pill { font-size:9px; padding:3px 10px; border-radius:30px; background:var(--bg4); border:1px solid var(--border); }
     .pill-prod { background:var(--productive-bg); color:var(--productive); border-color:var(--productive); }
     .pill-non { background:var(--nonprod-bg); color:var(--nonprod); border-color:var(--nonprod); }
@@ -89,46 +88,34 @@
     .task-duration { font-family:'JetBrains Mono'; font-size:10px; color:var(--text3); min-width:60px; }
     .add-task { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center; }
     .add-input { flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:40px; padding:10px 14px; font-size:13px; color:var(--text); }
-    .event-item { background:var(--bg3); border-radius:18px; padding:8px 12px; margin:6px 0; display:flex; align-items:center; gap:10px; font-size:13px; }
+    .event-item { background:var(--bg3); border-radius:18px; padding:8px 12px; margin:6px 0; display:flex; align-items:center; gap:10px; font-size:13px; font-weight: bold; justify-content: center; text-align: center; }
     .notes-area { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:18px; padding:12px; margin-top:12px; color:var(--text2); resize:vertical; }
-     
-    /* Google Calendar-like styles */
-    .calendar-container { background:var(--bg2); border:1px solid var(--border); border-radius:24px; overflow:hidden; margin-top:12px; }
-    .calendar-header { display:grid; grid-template-columns:60px repeat(7,1fr); background:var(--bg3); border-bottom:1px solid var(--border); }
-    .calendar-header-cell { padding:12px 6px; text-align:center; font-weight:600; font-size:12px; color:var(--text2); }
-    .calendar-header-cell.time { text-align:right; padding-right:10px; }
-    .calendar-body { display:grid; grid-template-columns:60px repeat(7,1fr); background:var(--bg2); gap:0; }
-    .time-slot { padding:4px 6px; text-align:right; font-size:10px; color:var(--text3); font-family:'JetBrains Mono'; border-right:1px solid var(--border); border-bottom:1px solid var(--border); min-height:60px; }
-    .day-column { border-right:1px solid var(--border); position:relative; }
-    .day-column:last-child { border-right:none; }
-    .hour-slot { border-bottom:1px solid var(--border); min-height:60px; position:relative; }
-    .hour-slot:hover { background:rgba(192,132,252,0.05); }
     
-    /* MODIFIED: Stylings updated for clear, bold centered visual flow on events */
-    .event-block { position:absolute; left:2px; right:2px; border-radius:8px; padding:4px 6px; overflow:hidden; cursor:pointer; transition:0.2s; border:1px solid; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:14px; font-weight:700; }
-    .event-block:hover { transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.3); }
-    .event-block.study { background:rgba(96,165,250,0.25); border-color:var(--study); color:var(--study); }
-    .event-block.hangout { background:rgba(244,114,182,0.25); border-color:var(--hangout); color:var(--hangout); }
-    .event-block.main { background:rgba(192,132,252,0.2); border-color:var(--primary); color:var(--primary); }
-    .event-title { white-space:normal; overflow:visible; text-overflow:clip; font-size:14px; font-weight:700; }
-    .event-delete { position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.5); color:white; border:none; border-radius:50%; width:16px; height:16px; font-size:10px; cursor:pointer; display:none; }
-    .event-block:hover .event-delete { display:block; }
-     
-    .month-view { background:var(--bg2); border:1px solid var(--border); border-radius:24px; overflow:hidden; margin-top:12px; }
-    .month-weekdays { display:grid; grid-template-columns:repeat(7,1fr); background:var(--bg3); border-bottom:1px solid var(--border); }
-    .month-weekday { padding:12px; text-align:center; font-weight:600; font-size:12px; color:var(--text2); }
-    .month-days { display:grid; grid-template-columns:repeat(7,1fr); }
-    .month-cell { min-height:100px; border:1px solid var(--border); padding:8px; cursor:pointer; position:relative; overflow:hidden; }
-    .month-cell:hover { background:rgba(192,132,252,0.05); }
-    .month-cell.today { background:var(--productive-bg); }
-    .month-cell.other-month { opacity:0.3; }
-    .month-day-num { font-weight:700; font-size:14px; margin-bottom:4px; }
-    .month-events { font-size:10px; display:flex; flex-direction:column; gap:3px; }
-    .month-event { padding:4px 6px; border-radius:6px; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
-     
-    .progress-overview { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
-    .overview-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:16px; flex:1; min-width:160px; }
-    .phase-card { background:var(--bg2); border-radius:20px; padding:16px; margin-bottom:16px; border-left:4px solid var(--primary); }
+    .cal-grid { background:var(--bg2); border:1px solid var(--border); border-radius:24px; overflow:hidden; margin-top:12px; }
+    .cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; padding:12px 0; background:var(--bg3); font-family:'JetBrains Mono'; font-size:11px; color:var(--text3); }
+    .cal-days { display:grid; grid-template-columns:repeat(7,1fr); }
+    .cal-cell { min-height:140px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:8px 6px; cursor:pointer; position:relative; display: flex; flex-direction: column; gap: 4px; }
+    .cal-cell:hover { background:var(--bg3); }
+    .cal-cell.today { background:var(--productive-bg); }
+    .cal-cell.other-month { opacity:0.4; }
+    .cal-day-num { font-family:'Syne'; font-size:14px; font-weight:700; margin-bottom:4px; }
+    .cal-evt { font-size:11px; font-weight: 700; padding:4px 8px; border-radius:20px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align: center; color: #000 !important; }
+    
+    .week-view-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; border-radius:24px; overflow:hidden; margin-top:12px; }
+    .week-view-grid > div { background:var(--bg2); padding:12px; min-height: 120px; border: 1px solid var(--border); border-radius: 18px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .week-header { font-family:'Syne'; font-weight:800; font-size:14px; text-align:center; border-bottom: 1px solid var(--border); width: 100%; padding-bottom: 6px; color: var(--primary); }
+    .week-header.today { background:var(--productive-bg); border-radius: 8px; }
+    .week-slot { display: flex; flex-direction: column; gap: 4px; width: 100%; justify-content: center; }
+    .week-evt { border-radius:20px; padding:6px 10px; font-size:12px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; display: block; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-transform: uppercase; }
+    
+    .day-view-grid { display:flex; flex-direction: column; gap:8px; border-radius:24px; margin-top:12px; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .day-view-grid > div { background:var(--bg2); padding:16px; border: 1px solid var(--border); border-radius: 20px; text-align: center; }
+    .day-slot { display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; width: 100%; }
+    .day-evt { border-radius:20px; padding:8px 16px; font-size:13px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; max-width: 400px; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    
+    .progress-overview { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; justify-content: center; }
+    .overview-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:16px; flex:1; max-width:220px; min-width:160px; text-align: center; }
+    .phase-card { background:var(--bg2); border-radius:20px; padding:16px; margin: 0 auto 16px; max-width: 800px; border-left:4px solid var(--primary); }
     .phase-title { font-weight:800; margin-bottom:12px; display:flex; justify-content:space-between; font-size:15px; }
     .topic-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
     .topic-name { flex:1; font-weight:600; font-size:13px; }
@@ -140,20 +127,31 @@
     .subtopic-list { margin-left: 28px; margin-top: 5px; padding-left: 8px; border-left: 1px dashed var(--border); }
     .subtopic-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; flex-wrap: wrap; }
     .sub-status { width: 80px; font-size: 10px; padding: 2px 6px; border-radius: 20px; text-align: center; cursor: pointer; }
-    .ai-suggestion-box { background:var(--bg3); border-radius:20px; padding:16px; margin-top:20px; border:1px solid var(--primary-border); }
+    .ai-suggestion-box { background:var(--bg3); border-radius:20px; padding:16px; margin: 20px auto; max-width: 800px; border:1px solid var(--primary-border); text-align: center; }
     .resource-link { font-size:10px; color:var(--primary); text-decoration:none; margin-left:4px; }
     .resource-link:hover { text-decoration:underline; }
     .phase-progress { height:6px; background:var(--bg3); border-radius:6px; margin:8px 0 12px; overflow:hidden; }
     .phase-progress-fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--productive)); border-radius:6px; transition:width 0.3s; }
-     
+    
     .side-panel { position:fixed; top:0; right:0; width:360px; height:100vh; background:var(--bg2); border-left:1px solid var(--border); transform:translateX(100%); transition:0.25s; z-index:300; padding:24px; overflow-y:auto; }
     .side-panel.open { transform:translateX(0); }
     @media(max-width:500px){ .side-panel{ width:100%; } }
     button, .nav-btn, .mode, .ai-btn, .log-time-btn { font-family: 'Outfit', sans-serif; }
   </style>
-</head>
+</head>head
 <body>
-<div class="topbar"><div class="logo"></div><div class="tabs"><button class="tab active" data-tab="tasks">Tasks</button><button class="tab" data-tab="calendar">Calendar</button><button class="tab" data-tab="progress">Progress</button></div><div class="sync-area"><div id="syncDot" class="sync-dot"></div><div id="syncLabel" style="font-size:10px; color:var(--text3)">synced</div></div></div>
+<div class="topbar">
+  <div class="logo"></div>
+  <div class="tabs">
+    <button class="tab active" data-tab="tasks">Tasks</button>
+    <button class="tab" data-tab="calendar">Calendar</button>
+    <button class="tab" data-tab="progress">Progress</button>
+  </div>
+  <div class="sync-area">
+    <div id="syncDot" class="sync-dot"></div>
+    <div id="syncLabel">☁️ synced</div>
+  </div>
+</div>
 
 <div id="tasksView" class="view active">
   <div class="stat-row" id="globalStats"></div>
@@ -164,17 +162,12 @@
       <button class="nav-btn" id="nextDayBtn">&rarr;</button>
       <span id="selectedDateLabel" class="day-label"></span>
     </div>
-    <div class="mode-group">
-      <button class="mode active" data-mode="day">Day</button>
-      <button class="mode" data-mode="week">Week</button>
-    </div>
   </div>
   <div class="ai-bar">
-    <input type="text" id="aiTaskInput" class="ai-input" placeholder="e.g. Gym from 7:00pm to 11:59pm on 15 June">
+    <input type="text" id="aiTaskInput" class="ai-input" placeholder="Example: Gym from 7:00pm to 11:59pm on 14 June">
     <button class="ai-btn" id="aiTaskRun">Add</button>
   </div>
   <div id="aiTaskResp" class="ai-resp"></div>
-  <div id="weekStrip" class="week-strip"></div>
   <div id="dayDetailContainer"></div>
 </div>
 
@@ -182,19 +175,19 @@
   <div class="date-nav">
     <div class="nav-group">
       <button class="nav-btn" id="prevMonthBtn">&larr;</button>
-      <button class="nav-btn" id="todayCalBtn">Today</button>
-      <button class="nav-btn" id="nextMonthBtn">&rarr;</button>
       <span id="monthYearLabel" class="day-label"></span>
+      <button class="nav-btn" id="nextMonthBtn">&rarr;</button>
     </div>
-    <div class="mode-group">
-      <button class="mode active" data-calmode="month">Month</button>
-      <button class="mode" data-calmode="week">Week</button>
-      <button class="mode" data-calmode="day">Day</button>
+    <div class="nav-group" style="margin-top: 10px;">
+      <button class="nav-btn" id="calModeMonth" onclick="setCalViewMode('month')">Month</button>
+      <button class="nav-btn" id="calModeWeek" onclick="setCalViewMode('week')">Week</button>
+      <button class="nav-btn" id="calModeDay" onclick="setCalViewMode('day')">Day</button>
+      <button class="nav-btn" id="todayCalBtn">Today</button>
     </div>
   </div>
   <div class="ai-bar">
-    <input type="text" id="aiCalInput" class="ai-input" placeholder="e.g. Lunch from 11:59am to 12:01pm on 14 June">
-    <button class="ai-btn" id="aiCalRun">Add</button>
+    <input type="text" id="aiCalInput" class="ai-input" placeholder="Example: Leetcode from 11:59am to 12:01pm on 15 June">
+    <button class="ai-btn" id="aiCalRun">Schedule</button>
   </div>
   <div id="aiCalResp" class="ai-resp"></div>
   <div id="calendarContainer"></div>
@@ -203,40 +196,40 @@
 <div id="progressView" class="view">
   <div class="progress-overview" id="progressOverview"></div>
   <div id="phasesContainer"></div>
-  <div class="ai-suggestion-box">
-    <div id="speedAdviceText" style="font-size:13px; color:var(--text2)"></div>
+  <div id="aiProgressAdvice" class="ai-suggestion-box">
+    <div style="font-weight:600; margin-bottom:6px;">🧠 Study recommendation</div>
+    <div id="speedAdviceText">loading...</div>
   </div>
 </div>
 
 <div id="sidePanel" class="side-panel">
-  <h2 id="panelDateTitle" style="margin-bottom:16px"></h2>
-  <input type="text" id="panelEventTitle" class="add-input" placeholder="Event name" style="margin-bottom:12px">
-  <div style="display:flex; gap:8px; margin-bottom:12px">
-    <input type="time" id="panelStart" class="add-input" style="flex:1">
-    <input type="time" id="panelEnd" class="add-input" style="flex:1">
+  <button style="float:right; background:none; border:none; color:var(--text3); font-size:20px; cursor:pointer" onclick="closeSidePanel()">✕</button>
+  <h3 id="panelDateTitle"></h3>
+  <div style="margin:16px 0">
+    <input id="panelEventTitle" placeholder="Event title" class="add-input" style="margin-bottom:8px; width:100%">
+    <div style="display:flex; gap:6px">
+      <input type="time" id="panelStart" class="add-input">
+      <input type="time" id="panelEnd" class="add-input">
+    </div>
+    <div style="display:flex; gap:6px; margin:10px 0">
+      <button class="nav-btn" style="flex:1" onclick="setPanelType('hangout')">🎉 Fun</button>
+      <button class="nav-btn" style="flex:1" onclick="setPanelType('study')">📚 Study</button>
+    </div>
+    <button class="nav-btn" style="width:100%; border-color: var(--productive); color: var(--productive);" onclick="addPanelEvent()">+ Add Event</button>
+    <div id="panelEventsList" style="margin-top:12px"></div>
   </div>
-  <div style="display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap">
-    <button class="nav-btn" onclick="setPanelType('main')" style="background:rgba(192,132,252,0.2); border-color:var(--primary); color:var(--primary)">Main</button>
-    <button class="nav-btn" onclick="setPanelType('study')" style="background:rgba(96,165,250,0.2); border-color:var(--study); color:var(--study)">Study</button>
-    <button class="nav-btn" onclick="setPanelType('hangout')" style="background:rgba(244,114,182,0.2); border-color:var(--hangout); color:var(--hangout)">Hangout</button>
-  </div>
-  <button class="nav-btn" onclick="addPanelEvent()" style="width:100%; background:var(--primary-bg); border-color:var(--primary); color:var(--primary); margin-bottom:12px">Add Event</button>
-  <button class="nav-btn" onclick="closeSidePanel()" style="width:100%">Close</button>
 </div>
 
 <script>
-let DB = {}, ROADMAP = [], currentFocusDate = new Date(), currentCalMonth = new Date(), viewMode = "day", calViewMode = "month", panelType = "main", apiKey = "", binId = "", saveTimer = null;
-
-let taskNameColors = {};
-function getTaskColor(taskName) {
-  if (!taskName) return "#2dd4bf";
-  if (!taskNameColors[taskName]) {
-    const colors = ["#60a5fa", "#f472b6", "#c084fc", "#2dd4bf", "#f97316", "#fbbf24", "#34d399", "#f87171"];
-    const hash = taskName.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
-    taskNameColors[taskName] = colors[Math.abs(hash) % colors.length];
-  }
-  return taskNameColors[taskName];
-}
+let DB = {};
+let ROADMAP = [];
+let currentFocusDate = new Date();
+let currentCalMonth = new Date();
+let viewMode = "day";
+let calViewMode = "month";
+let panelType = "study";
+let apiKey = null, binId = null;
+let saveTimer = null;
 
 function dkey(d) { 
   return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0'); 
@@ -248,41 +241,92 @@ function ensureDay(k) {
   if(!DB[k].events) DB[k].events=[]; 
 }
 
+function getTaskColor(name) {
+  if (!name) return "#60a5fa";
+  const colors = [
+    "#60a5fa", "#f472b6", "#2dd4bf", "#fbbf24", 
+    "#a78bfa", "#f87171", "#34d399", "#f97316",
+    "#38bdf8", "#ec4899", "#a3e635", "#fb923c"
+  ];
+  let hash = 0;
+  let normalName = name.trim().toLowerCase();
+  for (let i = 0; i < normalName.length; i++) {
+    hash = normalName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function convertTo24(timeStr) {
+  let t = timeStr.toLowerCase().trim();
+  let pm = t.includes("pm");
+  let am = t.includes("am");
+  t = t.replace(/am|pm/g, "").trim();
+  
+  let [hStr, mStr = "00"] = t.split(":");
+  let h = parseInt(hStr, 10);
+  let m = parseInt(mStr, 10);
+  
+  if (pm && h < 12) h += 12;
+  if (am && h === 12) h = 0;
+  
+  return String(h).padStart(2, '0') + ":" + String(m).padStart(2, '0');
+}
+
+function parseNaturalEvent(text) {
+  // Regex parsing format: [Task] from [Start] to [End] on [Day] [Month]
+  const regex = /(.*?)\s+from\s+([0-9:apmAPM]+)\s+to\s+([0-9:apmAPM]+)\s+on\s+(\d{1,2})\s+([A-Za-z]+)/i;
+  const match = text.match(regex);
+  if (!match) return null;
+
+  const title = match[1].trim();
+  const start = convertTo24(match[2]);
+  const end = convertTo24(match[3]);
+  const day = parseInt(match[4], 10);
+  const monthStr = match[5].toLowerCase().substring(0, 3);
+
+  const months = {
+    jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11
+  };
+  
+  const month = months[monthStr] !== undefined ? months[monthStr] : new Date().getMonth();
+  const year = 2026; // System base anchor year
+  const targetDate = new Date(year, month, day);
+
+  return {
+    title,
+    start,
+    end,
+    dateKey: dkey(targetDate)
+  };
+}
+
 function buildRoadmap() {
   return [
     { id:"phase1", name:"Phase 1: Foundations (Jun 12 - Jul 9)", totalTarget:110, topics:[
-      { name:"Book of Proof (Hammack)", target:40, subtopics:["Ch1-3: Sets & Logic","Ch4-6: Direct Proofs","Ch7-9: Induction & Contradiction","Ch10-13: Functions & Cardinality"], links:["https://www.people.vcu.edu/~rhammack/BookOfProof/"] },
-      { name:"Calculus (Stewart + Paul's + MIT 18.02)", target:25, subtopics:["AA HL Review (skip)","Multivariable: Partial Derivatives","Gradients & Optimization","Multiple Integrals","Line Integrals"], links:["https://tutorial.math.lamar.edu/","https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] },
-      { name:"Python Fluency (CS50P + Automate)", target:15, subtopics:["CS50P Week 0-3","OOP & Error Handling","File I/O & Regex","Automate Boring Stuff Projects"], links:["https://cs50.harvard.edu/python/2022/","https://automatetheboringstuff.com/"] },
-      { name:"NumPy + Matplotlib", target:15, subtopics:["Arrays & Broadcasting","Indexing & Vectorization","Basic Plots & Customization"], links:["https://numpy.org/learn/","https://matplotlib.org/stable/tutorials/"] },
-      { name:"Git + GitHub", target:5, subtopics:["Git Branching","Commits & Pull Requests","GitHub Profile Setup"], links:["https://learngitbranching.js.org/"] },
-      { name:"LeetCode Easy (20 problems)", target:15, subtopics:["Arrays & Hashing","Two Pointers","String Manipulation","Basic Recursion"], links:["https://neetcode.io/roadmap","https://leetcode.com/"] }
+      { name:"📘 Book of Proof (Hammack)", target:40, subtopics:["Ch1-3: Sets & Logic","Ch4-6: Direct Proofs","Ch7-9: Induction & Contradiction","Ch10-13: Functions & Cardinality"], links:["https://www.people.vcu.edu/~rhammack/BookOfProof/"] },
+      { name:"📐 Calculus (Stewart + Paul's + MIT 18.02)", target:25, subtopics:["AA HL Review (skip)","Multivariable: Partial Derivatives","Gradients & Optimization","Multiple Integrals","Line Integrals"], links:["https://tutorial.math.lamar.edu/","https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] },
+      { name:"🐍 Python Fluency (CS50P + Automate)", target:15, subtopics:["CS50P Week 0-3","OOP & Error Handling","File I/O & Regex","Automate Boring Stuff Projects"], links:["https://cs50.harvard.edu/python/2022/","https://automatetheboringstuff.com/"] },
+      { name:"📊 NumPy + Matplotlib", target:15, subtopics:["Arrays & Broadcasting","Indexing & Vectorization","Basic Plots & Customization"], links:["https://numpy.org/learn/","https://matplotlib.org/stable/tutorials/"] },
+      { name:"🐙 Git + GitHub", target:5, subtopics:["Git Branching","Commits & Pull Requests","GitHub Profile Setup"], links:["https://learngitbranching.js.org/"] },
+      { name:"💻 LeetCode Easy (20 problems)", target:15, subtopics:["Arrays & Hashing","Two Pointers","String Manipulation","Basic Recursion"], links:["https://neetcode.io/roadmap","https://leetcode.com/"] }
     ]},
     { id:"phase2", name:"Phase 2: Core Math + Algorithms (Jul 10 - Aug 13)", totalTarget:215, topics:[
-      { name:"Linear Algebra (Lay + MIT 18.06 + 3B1B)", target:60, subtopics:["Systems & Matrices","Vector Spaces","Eigenvalues & Eigenvectors","SVD & Applications"], links:["https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/","https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"] },
-      { name:"Probability (Morin + Stat110)", target:40, subtopics:["Counting & Combinatorics","Conditional Probability & Bayes","Expectation & Variance","Distributions & CLT"], links:["https://projects.iq.harvard.edu/stat110/home"] },
-      { name:"Discrete Math (Rosen / Levin + MIT 6.042J)", target:30, subtopics:["Logic & Proofs","Graph Theory","Number Theory","Combinatorics"], links:["https://discrete.openmathbooks.org/dmoi3.html","https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2010/"] },
-      { name:"Data Structures & Algorithms (Neetcode 150)", target:50, subtopics:["Trees & Graphs","Recursion & DP","Sliding Window & Two Pointers","Heaps & Tries"], links:["https://neetcode.io/"] },
-      { name:"LeetCode Medium (30 problems)", target:30, subtopics:["Tree Traversals","BFS/DFS","Dynamic Programming Basics"], links:["https://leetcode.com/"] },
-      { name:"Pandas + Scipy", target:5, subtopics:["DataFrames & Groupby","Time Series & Stats"], links:["https://pandas.pydata.org/docs/","https://www.kaggle.com/learn/pandas"] }
+      { name:"🔢 Linear Algebra (Lay + MIT 18.06 + 3B1B)", target:60, subtopics:["Systems & Matrices","Vector Spaces","Eigenvalues & Eigenvectors","SVD & Applications"], links:["https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/","https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"] },
+      { name:"🎲 Probability (Morin + Stat110)", target:40, subtopics:["Counting & Combinatorics","Conditional Probability & Bayes","Expectation & Variance","Distributions & CLT"], links:["https://projects.iq.harvard.edu/stat110/home"] },
+      { name:"🧩 Discrete Math (Rosen / Levin + MIT 6.042J)", target:30, subtopics:["Logic & Proofs","Graph Theory","Number Theory","Combinatorics"], links:["https://discrete.openmathbooks.org/dmoi3.html","https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2010/"] },
+      { name:"⚙️ Data Structures & Algorithms (Neetcode 150)", target:50, subtopics:["Trees & Graphs","Recursion & DP","Sliding Window & Two Pointers","Heaps & Tries"], links:["https://neetcode.io/"] },
+      { name:"📈 LeetCode Medium (30 problems)", target:30, subtopics:["Tree Traversals","BFS/DFS","Dynamic Programming Basics"], links:["https://leetcode.com/"] },
+      { name:"🐼 Pandas + Scipy", target:5, subtopics:["DataFrames & Groupby","Time Series & Stats"], links:["https://pandas.pydata.org/docs/","https://www.kaggle.com/learn/pandas"] }
     ]},
     { id:"phase3", name:"Phase 3: ML + Computer Vision (Aug 14 - Sep 8)", totalTarget:155, topics:[
-      { name:"fast.ai Part 1", target:20, subtopics:["Lesson 1-3: Image Classification","Lesson 4-5: NLP & Tabular","Lesson 6-7: Collaborative Filtering"], links:["https://course.fast.ai/"] },
-      { name:"Karpathy Zero to Hero", target:30, subtopics:["micrograd","makemore","GPT from Scratch"], links:["https://karpathy.ai/zero-to-hero.html"] },
-      { name:"OpenCV (LearnOpenCV + Docs)", target:20, subtopics:["Image Basics & Filtering","Edge Detection & Contours","Feature Matching","Object Tracking"], links:["https://learnopencv.com/","https://docs.opencv.org/4.13.0/"] },
-      { name:"PyTorch Basics (Official Tutorials)", target:15, subtopics:["Tensors & Autograd","Training Loop","Custom Datasets","Transfer Learning"], links:["https://pytorch.org/tutorials/beginner/basics/intro.html","https://pytorch.org/tutorials/"] },
-      { name:"Project 1: CIFAR-10 CNN", target:30, subtopics:["DataLoader & Augmentation","3-Layer CNN","Training & Evaluation","Confusion Matrix"], links:[] },
-      { name:"Multivariable Calc (MIT 18.02 Review)", target:25, subtopics:["Partial Derivatives & Gradients","Optimization","Jacobian & Hessian"], links:["https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] }
+      { name:"🤖 fast.ai Part 1", target:20, subtopics:["Lesson 1-3: Image Classification","Lesson 4-5: NLP & Tabular","Lesson 6-7: Collaborative Filtering"], links:["https://course.fast.ai/"] },
+      { name:"🧠 Karpathy Zero to Hero", target:30, subtopics:["micrograd","makemore","GPT from Scratch"], links:["https://karpathy.ai/zero-to-hero.html"] },
+      { name:"👁️ OpenCV (LearnOpenCV + Docs)", target:20, subtopics:["Image Basics & Filtering","Edge Detection & Contours","Feature Matching","Object Tracking"], links:["https://learnopencv.com/","https://docs.opencv.org/4.13.0/"] },
+      { name:"🔥 PyTorch Basics (Official Tutorials)", target:15, subtopics:["Tensors & Autograd","Training Loop","Custom Datasets","Transfer Learning"], links:["https://pytorch.org/tutorials/beginner/basics/intro.html","https://pytorch.org/tutorials/"] },
+      { name:"📁 Project 1: CIFAR-10 CNN", target:30, subtopics:["DataLoader & Augmentation","3-Layer CNN","Training & Evaluation","Confusion Matrix"], links:[] },
+      { name:"📐 Multivariable Calc (MIT 18.02 Review)", target:25, subtopics:["Partial Derivatives & Gradients","Optimization","Jacobian & Hessian"], links:["https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/"] }
     ]}
   ];
-}
-
-function makeUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    let r = Math.random() * 16 | 0;
-    let v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
 }
 
 function initRoadmap() {
@@ -296,7 +340,7 @@ function initRoadmap() {
         subtopicItems.push({ name: sub, status: "not started", spentHours: 0, targetHours: subHours });
       }
       ROADMAP.push({
-        id: makeUUID(),
+        id: crypto.randomUUID(),
         phase: phase.name,
         topic: topic.name,
         targetHours: topic.target,
@@ -333,116 +377,65 @@ function recomputeProgress() {
 
 function renderProgressSection() {
   let stats = recomputeProgress();
-  let overviewEl = document.getElementById("progressOverview");
-  overviewEl.innerHTML = "";
-  [
-    { val: Math.round(stats.totalSpent)+"h", label:"hours spent", color:"var(--primary)" },
-    { val: stats.totalTarget+"h",            label:"total target", color:"var(--productive)" },
-    { val: Math.round(stats.percent)+"%",    label:"progress",     color:null },
-    { val: stats.completedTopics+"/"+stats.totalTopics, label:"topics done", color:null }
-  ].forEach(function(s){
-    let card = document.createElement("div"); card.className="overview-card";
-    let num  = document.createElement("div"); num.className="stat-num";
-    if(s.color) num.style.color = s.color;
-    num.textContent = s.val;
-    let lbl  = document.createElement("div"); lbl.className="stat-label";
-    lbl.textContent = s.label;
-    card.appendChild(num); card.appendChild(lbl);
-    overviewEl.appendChild(card);
-  });
-
-  let container = document.getElementById("phasesContainer");
-  container.innerHTML = "";
-  let phaseNames = [
-    "Phase 1: Foundations (Jun 12 - Jul 9)",
-    "Phase 2: Core Math + Algorithms (Jul 10 - Aug 13)",
-    "Phase 3: ML + Computer Vision (Aug 14 - Sep 8)"
-  ];
-
-  for(let phaseName of phaseNames){
-    let phaseTopics = ROADMAP.filter(function(t){ return t.phase === phaseName; });
-    if(phaseTopics.length === 0) continue;
-    let spent = phaseTopics.reduce(function(s,t){ return s+t.spentHours; }, 0);
-    let target = phaseTopics.reduce(function(s,t){ return s+t.targetHours; }, 0);
-    let pct = target > 0 ? (spent/target)*100 : 0;
-    let phaseCard = document.createElement("div"); phaseCard.className="phase-card";
-    let titleDiv = document.createElement("div"); titleDiv.className="phase-title";
-    let titleSpan = document.createElement("span"); titleSpan.textContent = phaseName;
-    let hoursSpan = document.createElement("span"); hoursSpan.textContent = Math.round(spent)+"h / "+target+"h";
-    hoursSpan.style.cssText = "color:var(--text2);font-size:13px";
-    titleDiv.appendChild(titleSpan); titleDiv.appendChild(hoursSpan);
-    phaseCard.appendChild(titleDiv);
-    let bar = document.createElement("div"); bar.className="phase-progress";
-    let fill = document.createElement("div"); fill.className="phase-progress-fill";
-    fill.style.width = pct+"%";
-    bar.appendChild(fill); phaseCard.appendChild(bar);
-    for(let t of phaseTopics){
+  document.getElementById("progressOverview").innerHTML = 
+    '<div class="overview-card"><div class="stat-num" style="color:var(--primary)">' + Math.round(stats.totalSpent) + 'h</div><div class="stat-label">hours spent</div></div>' +
+    '<div class="overview-card"><div class="stat-num" style="color:var(--productive)">' + stats.totalTarget + 'h</div><div class="stat-label">total target</div></div>' +
+    '<div class="overview-card"><div class="stat-num">' + Math.round(stats.percent) + '%</div><div class="stat-label">progress</div></div>' +
+    '<div class="overview-card"><div class="stat-num">' + stats.completedTopics + '/' + stats.totalTopics + '</div><div class="stat-label">topics done</div></div>';
+  
+  let html = "";
+  let phases = ["Phase 1: Foundations (Jun 12 - Jul 9)","Phase 2: Core Math + Algorithms (Jul 10 - Aug 13)","Phase 3: ML + Computer Vision (Aug 14 - Sep 8)"];
+  
+  for(let phase of phases) {
+    let phaseTopics = ROADMAP.filter(t=>t.phase===phase);
+    if(phaseTopics.length===0) continue;
+    
+    let spent = phaseTopics.reduce((s,t)=>s+t.spentHours,0);
+    let target = phaseTopics.reduce((s,t)=>s+t.targetHours,0);
+    let phasePercent = target>0 ? (spent/target)*100 : 0;
+    
+    html += '<div class="phase-card"><div class="phase-title"><span>' + phase + '</span><span style="color:var(--text2); font-size:13px">' + Math.round(spent) + 'h / ' + target + 'h</span></div>';
+    html += '<div class="phase-progress"><div class="phase-progress-fill" style="width:' + phasePercent + '%"></div></div>';
+    
+    for(let t of phaseTopics) {
       let statusClass = t.status==="done"?"status-done":t.status==="ongoing"?"status-ongoing":"status-not";
-      // MODIFIED: Removed ✓ character from state labels to match constraints cleanly
-      let statusText = t.status==="done"?"Done":t.status==="ongoing"?"⏳ Ongoing":"○ Not Started";
-      let row = document.createElement("div"); row.className="topic-row";
-      let nameDiv = document.createElement("div"); nameDiv.className="topic-name";
-      nameDiv.textContent = t.topic + " ";
-      (t.links||[]).forEach(function(l){
-        let a = document.createElement("a"); a.href=l; a.target="_blank";
-        a.className="resource-link"; a.textContent="🔗";
-        nameDiv.appendChild(a);
-      });
-      row.appendChild(nameDiv);
-      let statusDiv = document.createElement("div");
-      statusDiv.className="topic-status "+statusClass;
-      statusDiv.textContent = statusText;
-      (function(id){ statusDiv.addEventListener("click", function(){ cycleTopicStatus(id); }); })(t.id);
-      row.appendChild(statusDiv);
-      let input = document.createElement("input");
-      input.type="number"; input.step="0.5"; input.className="time-spent";
-      input.value = Math.round(t.spentHours*10)/10;
-      (function(id){ input.addEventListener("change", function(){ updateTopicHours(id, this.value); }); })(t.id);
-      row.appendChild(input);
-      let hLabel = document.createElement("div");
-      hLabel.style.cssText="font-size:11px;color:var(--text3);min-width:50px";
-      hLabel.textContent = "/"+t.targetHours+"h";
-      row.appendChild(hLabel);
-      phaseCard.appendChild(row);
+      let statusText = t.status==="done"?"✓ Done":t.status==="ongoing"?"⏳ Ongoing":"○ Not Started";
+      let linksHtml = t.links.map(l=>'<a href="' + l + '" target="_blank" class="resource-link">🔗</a>').join("");
+      
+      html += '<div class="topic-row"><div class="topic-name">' + t.topic + ' ' + linksHtml + '</div>';
+      html += '<div class="topic-status ' + statusClass + '" onclick="cycleTopicStatus(\'' + t.id + '\')">' + statusText + '</div>';
+      html += '<input type="number" step="0.5" value="' + Math.round(t.spentHours*10)/10 + '" class="time-spent" onchange="updateTopicHours(\'' + t.id + '\', this.value)">';
+      html += '<div style="font-size:11px; color:var(--text3); min-width:50px">/' + t.targetHours + 'h</div></div>';
+      
       if(t.subtopics && t.subtopics.length){
-        let subList = document.createElement("div"); subList.className="subtopic-list";
-        t.subtopics.forEach(function(sub, idx){
+        html += '<div class="subtopic-list">';
+        t.subtopics.forEach((sub,idx)=>{
           let subStatus = sub.status==="done"?"status-done":sub.status==="ongoing"?"status-ongoing":"status-not";
-          // MODIFIED: Removed ✓ character from child status elements cleanly
-          let subLabel = sub.status==="done"?"":sub.status==="ongoing"?"⏳":"○";
-          let subItem = document.createElement("div"); subItem.className="subtopic-item";
-          let subBadge = document.createElement("div");
-          subBadge.className="sub-status "+subStatus;
-          subBadge.textContent = (subLabel ? subLabel + " " : "") + sub.name;
-          (function(id,i){ subBadge.addEventListener("click", function(){ cycleSubStatus(id,i); }); })(t.id, idx);
-          subItem.appendChild(subBadge);
-          let subInput = document.createElement("input");
-          subInput.type="number"; subInput.step="0.5"; subInput.className="time-spent";
-          subInput.style.width="70px";
-          subInput.value = Math.round(sub.spentHours*10)/10;
-          (function(id,i){ subInput.addEventListener("change", function(){ updateSubHours(id,i,this.value); }); })(t.id, idx);
-          subItem.appendChild(subInput);
-          let subHLabel = document.span || document.createElement("span");
-          subHLabel.style.cssText="font-size:10px;color:var(--text3)";
-          subHLabel.textContent="/"+sub.targetHours+"h";
-          subItem.appendChild(subHLabel);
-          subList.appendChild(subItem);
+          let subLabel = sub.status==="done"?"✓":sub.status==="ongoing"?"⏳":"○";
+          html += '<div class="subtopic-item"><div class="sub-status ' + subStatus + '" onclick="cycleSubStatus(\'' + t.id + '\',' + idx + ')">' + subLabel + ' ' + sub.name + '</div>';
+          html += '<input type="number" step="0.5" value="' + Math.round(sub.spentHours*10)/10 + '" style="width:70px" class="time-spent" onchange="updateSubHours(\'' + t.id + '\',' + idx + ',this.value)">';
+          html += '<span style="font-size:10px; color:var(--text3)">/' + sub.targetHours + 'h</span></div>';
         });
-        phaseCard.appendChild(subList);
+        html += '</div>';
       }
     }
-    container.appendChild(phaseCard);
+    html += '</div>';
   }
-
-  let incomplete = ROADMAP.filter(function(t){ return t.status!=="done"; });
+  
+  document.getElementById("phasesContainer").innerHTML = html;
+  
+  let advice = "";
+  let incomplete = ROADMAP.filter(t=>t.status!=="done").slice(0,2);
   let nextTopic = incomplete.length ? incomplete[0].topic : "All topics completed!";
-  let advEl = document.getElementById("speedAdviceText");
-  if(stats.dailyNeeded > stats.actualPace + 0.5)
-    advEl.innerHTML = "To finish by Sep 8 you need ~"+stats.dailyNeeded.toFixed(1)+"h/day (current "+stats.actualPace.toFixed(1)+"h/day). Focus next on: <strong>"+escapeHtml(nextTopic)+"</strong>.";
-  else if(stats.dailyNeeded <= stats.actualPace)
-    advEl.innerHTML = "Great pace! Keep going. Next recommended: <strong>"+escapeHtml(nextTopic)+"</strong>.";
-  else
-    advEl.innerHTML = "Try to complete <strong>"+escapeHtml(nextTopic)+"</strong> next. You need "+stats.dailyNeeded.toFixed(1)+"h/day.";
+  
+  if(stats.dailyNeeded > stats.actualPace + 0.5) 
+    advice = '⚠️ To finish by Sep 8 you need ~' + stats.dailyNeeded.toFixed(1) + 'h/day (current ' + stats.actualPace.toFixed(1) + 'h/day). Focus next on: <strong>' + nextTopic + '</strong>.';
+  else if(stats.dailyNeeded <= stats.actualPace) 
+    advice = '✅ Great pace! Keep going. Next recommended: <strong>' + nextTopic + '</strong>.';
+  else 
+    advice = '📌 Try to complete <strong>' + nextTopic + '</strong> next. You need ' + stats.dailyNeeded.toFixed(1) + 'h/day.';
+  
+  document.getElementById("speedAdviceText").innerHTML = advice;
 }
 
 function cycleTopicStatus(id){ 
@@ -488,7 +481,7 @@ function updateSubHours(topicId, subIdx, val){
 function setSync(state){ 
   let d=document.getElementById("syncDot"); 
   if(d) d.className="sync-dot"+(state==="saving"?" saving":state==="error"?" error":""); 
-  document.getElementById("syncLabel").innerText=state==="saving"?"saving...":state==="error"?"error":"synced"; 
+  document.getElementById("syncLabel").innerHTML=state==="saving"?"☁️ saving...":state==="error"?"☁️ error":"☁️ synced"; 
 }
 async function saveToCloud(){ 
   if(!apiKey) return; 
@@ -499,7 +492,7 @@ async function saveToCloud(){
       let r=await fetch("https://api.jsonbin.io/v3/b",{method:"POST",headers:{"Content-Type":"application/json","X-Master-Key":apiKey,"X-Bin-Name":"planner_data"},body:JSON.stringify(payload)}); 
       let data=await r.json(); 
       binId=data.metadata?.id; 
-      if(binId) lsSet("planner_bin",binId); 
+      if(binId) localStorage.setItem("planner_bin",binId); 
     } else { 
       await fetch("https://api.jsonbin.io/v3/b/"+binId,{method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":apiKey},body:JSON.stringify(payload)}); 
     } 
@@ -512,23 +505,24 @@ function scheduleSync(){
   clearTimeout(saveTimer); 
   saveTimer=setTimeout(saveToCloud,1500); 
 }
-async function loadFromCloud(){
-  if(!ROADMAP.length) initRoadmap();
-  fullRender();
-  if(!apiKey || !binId) return;
-  setSync("saving");
-  try{
-    let r=await fetch("https://api.jsonbin.io/v3/b/"+binId+"/latest",{headers:{"X-Master-Key":apiKey}});
-    if(r.ok){
-      let data=await r.json();
-      if(data.record && data.record.db) DB=data.record.db;
-      if(data.record && data.record.roadmap && data.record.roadmap.length) ROADMAP=data.record.roadmap;
-      fullRender();
-    }
-    setSync("ok");
-  } catch(e){
-    setSync("ok");
-  }
+async function loadFromCloud(){ 
+  if(!apiKey) return; 
+  setSync("saving"); 
+  if(binId){ 
+    try{ 
+      let r=await fetch("https://api.jsonbin.io/v3/b/"+binId+"/latest",{headers:{"X-Master-Key":apiKey}}); 
+      if(r.ok){ 
+        let data=await r.json(); 
+        if(data.record && data.record.db) DB=data.record.db; 
+        if(data.record && data.record.roadmap && data.record.roadmap.length) ROADMAP=data.record.roadmap; 
+      } 
+    } catch(e) { 
+      console.warn(e); 
+    } 
+  } 
+  if(!ROADMAP.length) initRoadmap(); 
+  setSync("ok"); 
+  fullRender(); 
 }
 
 function getWeekDates(base){
@@ -539,37 +533,26 @@ function getWeekDates(base){
 function renderTasks(){
   let weekDates=getWeekDates(currentFocusDate);
   document.getElementById("selectedDateLabel").innerHTML = currentFocusDate.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
-  let strip=document.getElementById("weekStrip");
-  if(viewMode==="week"){ 
-    strip.style.display="grid"; 
-    strip.innerHTML=""; 
-    weekDates.forEach(d=>{ 
-      let isT=dkey(d)===todayKey(); 
-      strip.innerHTML+='<div class="strip-cell '+(isT?'today':'')+'" onclick="setFocusDate(\''+dkey(d)+'\')"><div class="strip-day">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="strip-date">'+d.getDate()+'</div></div>'; 
-    }); 
-  } else { 
-    strip.style.display="none"; 
-  }
-  let datesToShow = viewMode==="week" ? weekDates : [currentFocusDate];
+  
   let container=document.getElementById("dayDetailContainer"); 
   container.innerHTML="";
-  for(let d of datesToShow){
-    let k=dkey(d); 
-    ensureDay(k);
-    let tasks=DB[k].tasks||[]; 
-    let doneCount=tasks.filter(t=>t.done).length; 
-    let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
-    let isToday=k===todayKey();
-    let card=document.createElement("div"); 
-    card.className="day-card"; 
-    if(isToday) card.classList.add("open"); 
-    card.id="card-"+k;
-    card.innerHTML='<div class="card-header" onclick="toggleDay(\''+k+'\')"><div class="badge '+(isToday?'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+d.toLocaleDateString('en-GB',{ weekday:'long', month:'short', day:'numeric' })+' '+(isToday?'· today':'')+'</div><div class="pill-strip" id="pills-'+k+'"></div></div><div class="chevron">›</div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="new task..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'"></div><textarea class="notes-area" id="notes-'+k+'" oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
-    container.appendChild(card);
-    renderDayTasks(k); 
-    renderDayEvents(k); 
-    updatePills(k);
-  }
+  
+  let d = currentFocusDate;
+  let k=dkey(d); 
+  ensureDay(k);
+  let tasks=DB[k].tasks||[]; 
+  let doneCount=tasks.filter(t=>t.done).length; 
+  let percent=tasks.length?Math.round(doneCount/tasks.length*100):0;
+  let isToday=k===todayKey();
+  
+  let card=document.createElement("div"); 
+  card.className="day-card open"; 
+  card.id="card-"+k;
+  card.innerHTML='<div class="card-header"><div class="badge '+(isToday?'today':'')+'"><div class="badge-weekday">'+d.toLocaleDateString('en-GB',{weekday:'short'})+'</div><div class="badge-date">'+d.getDate()+'</div></div><div class="day-info"><div class="day-title">'+d.toLocaleDateString('en-GB',{ weekday:'long', month:'short', day:'numeric' })+' '+(isToday?'· today':'')+'</div><div class="pill-strip" id="pills-'+k+'"></div></div></div><div class="card-body"><div class="progress-bar"><div class="progress-fill" style="width:'+percent+'%"></div></div><div id="tasks-list-'+k+'"></div><div class="add-task"><input id="newtask-'+k+'" class="add-input" placeholder="Quick task creation..."><select id="tasktype-'+k+'" class="add-input" style="width:auto"><option value="productive">⚡ Productive</option><option value="nonproductive">🌀 Non-productive</option></select><select id="prio-'+k+'" class="add-input" style="width:auto"><option value="high">🔴 High</option><option value="mid" selected>🟡 Mid</option><option value="low">🟢 Low</option></select><button class="nav-btn" onclick="addTaskFromInput(\''+k+'\')">+</button></div><div id="events-list-'+k+'" style="margin-top: 14px;"></div><textarea class="notes-area" id="notes-'+k+'" placeholder="Write down notes here..." oninput="updateNote(\''+k+'\')">'+(DB[k].notes||"")+'</textarea></div>';
+  container.appendChild(card);
+  renderDayTasks(k); 
+  renderDayEvents(k); 
+  updatePills(k);
 }
 
 function renderDayTasks(k){
@@ -577,6 +560,7 @@ function renderDayTasks(k){
   let container=document.getElementById("tasks-list-"+k); 
   if(!container) return; 
   container.innerHTML="";
+  
   tasks.forEach((t,i)=>{
     let typeClass=t.type==="productive"?"type-prod":"type-nonprod";
     let typeLabel=t.type==="productive"?"⚡ Productive":"🌀 Non-prod";
@@ -586,10 +570,14 @@ function renderDayTasks(k){
     let displayHours = Math.floor(totalMinutes/60);
     let displayMins = totalMinutes%60;
     let durText = totalMinutes>0 ? displayHours+"h "+displayMins+"m" : "0h";
+    let assignedColor = getTaskColor(t.text);
+    
     let row=document.createElement("div"); 
     row.className="task-row";
+    row.style.borderLeft = `4px solid ${assignedColor}`;
+    row.style.paddingLeft = "8px";
     row.innerHTML='<div class="check '+(t.done?'done':'')+'" onclick="toggleTaskDone(\''+k+'\','+i+')">'+(t.done?'✓':'')+
-      '</div><input class="task-text '+(t.done?'done':'')+'" value="'+escapeHtml(t.text)+'" onblur="editTaskText(\''+k+'\','+i+',this.value)">'+
+      '</div><input class="task-text '+(t.done?'done':'')+'" style="font-weight:700;" value="' + escapeHtml(t.text) + '" onblur="editTaskText(\''+k+'\','+i+',this.value)">'+
       '<div class="task-type '+typeClass+'" onclick="cycleTaskType(\''+k+'\','+i+')">'+typeLabel+'</div>'+
       '<div class="prio-badge '+prioClass+'" onclick="cyclePrio(\''+k+'\','+i+')">'+prioLabel+'</div>'+
       '<div class="duration-inputs">'+
@@ -682,7 +670,7 @@ function renderDayEvents(k){
   let evDiv=document.getElementById("events-list-"+k); 
   if(!evDiv) return; 
   let events=DB[k].events||[]; 
-  evDiv.innerHTML=events.map((e,i)=>'<div class="event-item"><div style="background:'+(e.type==='hangout'?'var(--hangout)':e.type==='study'?'var(--study)':'var(--primary)')+'; width:8px;height:8px;border-radius:8px"></div><div style="flex:1"><strong>'+escapeHtml(e.title)+'</strong></div><button style="background:none;border:none;color:var(--high)" onclick="deleteEvent(\''+k+'\','+i+')">✕</button></div>').join(""); 
+  evDiv.innerHTML=events.map((e,i)=>'<div class="event-item" style="background:'+getTaskColor(e.title)+'; color:#000"><div style="flex:1; font-weight:800; text-transform:uppercase;">'+escapeHtml(e.title)+'</div><button style="background:none;border:none;color:#000; font-weight:800; cursor:pointer;" onclick="deleteEvent(\''+k+'\','+i+')">✕</button></div>').join(""); 
 }
 
 function deleteEvent(k,i){ 
@@ -697,8 +685,8 @@ function addPanelEvent(){
   if(!k)return; 
   let title=document.getElementById("panelEventTitle").value.trim(); 
   if(!title)return; 
-  let start=document.getElementById("panelStart").value; 
-  let end=document.getElementById("panelEnd").value; 
+  let start=document.getElementById("panelStart").value || "12:00"; 
+  let end=document.getElementById("panelEnd").value || "13:00"; 
   ensureDay(k); 
   DB[k].events.push({title,start,end,type:panelType}); 
   scheduleSync(); 
@@ -708,6 +696,7 @@ function addPanelEvent(){
 }
 
 function setPanelType(t){ panelType=t; }
+
 function openSidePanel(k){ 
   document.getElementById("panelDateTitle").innerHTML=k; 
   document.getElementById("panelDateTitle").setAttribute("data-key",k); 
@@ -716,33 +705,47 @@ function openSidePanel(k){
   document.getElementById("panelEnd").value="13:00"; 
   document.getElementById("sidePanel").classList.add("open"); 
 }
-function closeSidePanel(){ document.getElementById("sidePanel").classList.remove("open"); }
+
+function closeSidePanel(){ 
+  document.getElementById("sidePanel").classList.remove("open"); 
+}
 
 function renderCalendar(){
   let container = document.getElementById("calendarContainer");
   container.innerHTML = "";
-  if(calViewMode === "month") renderMonthView(container);
-  else if(calViewMode === "week") renderWeekView(container);
-  else if(calViewMode === "day") renderDayView(container);
+  
+  if(calViewMode === "month") {
+    renderMonthView(container);
+  } else if(calViewMode === "week") {
+    renderWeekView(container);
+  } else if(calViewMode === "day") {
+    renderDayView(container);
+  }
 }
 
 function renderMonthView(container) {
   let year=currentCalMonth.getFullYear(), month=currentCalMonth.getMonth();
-  let first=new Date(year,month,1), last=new Date(year,month+1,0);
-  let startOffset=first.getDay(); startOffset=startOffset===0?6:startOffset-1;
-  let html = '<div class="month-view"><div class="month-weekdays"><div class="month-weekday">Mon</div><div class="month-weekday">Tue</div><div class="month-weekday">Wed</div><div class="month-weekday">Thu</div><div class="month-weekday">Fri</div><div class="month-weekday">Sat</div><div class="month-weekday">Sun</div></div><div class="month-days">';
+  let first=new Date(year,month,1); 
+  let last=new Date(year,month+1,0);
+  let startOffset=first.getDay(); 
+  startOffset=startOffset===0?6:startOffset-1;
+  
+  let html = '<div class="cal-grid"><div class="cal-weekdays"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div><div class="cal-days">';
+  
   for(let i=0;i<startOffset;i++){ 
     let d=new Date(year,month,0-startOffset+i+1); 
-    html+='<div class="month-cell other-month"><div class="month-day-num">'+d.getDate()+'</div></div>'; 
+    html+='<div class="cal-cell other-month"><div class="cal-day-num" style="color:var(--text3)">'+d.getDate()+'</div></div>'; 
   }
+  
   for(let day=1;day<=last.getDate();day++){ 
-    let d=new Date(year,month,day); let k=dkey(d); let events=DB[k]?.events||[]; let isToday=k===todayKey(); 
-    let evHtml=events.map(e=>{
-      let color = getTaskColor(e.title);
-      return '<div class="month-event" style="background:'+color+'22; color:'+color+'; border-left:3px solid '+color+'">'+escapeHtml(e.title)+'</div>';
-    }).join(""); 
-    html+='<div class="month-cell '+(isToday?"today":"")+'" onclick="openSidePanel(\''+k+'\')"><div class="month-day-num">'+day+'</div><div class="month-events">'+evHtml+(events.length>3?'<div class="month-event">+'+(events.length-3)+' more</div>':'')+'</div></div>'; 
+    let d=new Date(year,month,day); 
+    let k=dkey(d); 
+    let events=DB[k]?.events||[]; 
+    let isToday=k===todayKey(); 
+    let evHtml=events.slice(0,4).map(e=>'<div class="cal-evt" style="background:'+getTaskColor(e.title)+'">'+escapeHtml(e.title)+'</div>').join(""); 
+    html+='<div class="cal-cell '+(isToday?"today":"")+'" onclick="openSidePanel(\''+k+'\')"><div class="cal-day-num">'+day+'</div>'+evHtml+(events.length>4?'<div class="cal-evt" style="background:var(--bg4); color:var(--text2) !important;">+'+(events.length-4)+' more</div>':'')+'</div>'; 
   }
+  
   html += '</div></div>';
   document.getElementById("monthYearLabel").innerHTML=`${first.toLocaleString('default',{month:'long'})} ${year}`;
   container.innerHTML = html;
@@ -750,158 +753,203 @@ function renderMonthView(container) {
 
 function renderWeekView(container) {
   let weekDates = getWeekDates(currentCalMonth);
-  let html = '<div class="calendar-container"><div class="calendar-header"><div class="calendar-header-cell time">Time</div>';
+  let html = '<div class="week-view-grid">';
+  
   weekDates.forEach(d => {
-    let isT = dkey(d) === todayKey();
-    html += '<div class="calendar-header-cell '+(isT?'today':'')+'">' + d.toLocaleDateString('en-GB',{weekday:'short'}) + '<br>' + d.getDate() + '</div>';
+    let k = dkey(d);
+    let isT = k === todayKey();
+    let events = DB[k]?.events || [];
+    
+    html += '<div onclick="openSidePanel(\''+k+'\')">';
+    html += '<div class="week-header '+(isT?'today':'')+'">' + d.toLocaleDateString('en-GB',{weekday:'short', day:'numeric'}) + '</div>';
+    html += '<div class="week-slot">';
+    
+    if(events.length === 0) {
+      html += '<div style="color:var(--text3); font-size:10px; text-align:center; margin-top:20px;">No events</div>';
+    } else {
+      events.forEach(e => {
+        html += '<div class="week-evt" style="background:'+getTaskColor(e.title)+'">' + escapeHtml(e.title) + '</div>';
+      });
+    }
+    
+    html += '</div></div>';
   });
-  html += '</div><div class="calendar-body">';
-  for(let hour=0; hour<24; hour++) {
-    let timeStr = hour.toString().padStart(2,'0') + ':00';
-    html += '<div class="time-slot">' + timeStr + '</div>';
-    weekDates.forEach(d => {
-      let k = dkey(d); let events = DB[k]?.events||[];
-      let eventsInHour = events.filter(e => { let [h,m] = e.start.split(':').map(Number); return h === hour; });
-      let evHtml = eventsInHour.map(e => {
-        let [sh,sm] = e.start.split(':').map(Number); let [eh,em] = e.end.split(':').map(Number);
-        let duration = Math.max(1, (eh-sh) || 1); let top = (sm/60)*60;
-        let color = getTaskColor(e.title);
-        // MODIFIED: Left title rendering intact, bold and centered, completely omitting raw time strings
-        return '<div class="event-block" style="top:'+top+'px; height:'+(duration*60)+'px; background:'+color+'22; border-color:'+color+'; color:'+color+'" onclick="event.stopPropagation()" title="'+escapeHtml(e.title)+'"><button class="event-delete" onclick="deleteEventFromCal(\''+k+'\','+events.indexOf(e)+', event)">✕</button><div class="event-title">'+escapeHtml(e.title)+'</div></div>';
-      }).join("");
-      html += '<div class="day-column"><div class="hour-slot" onclick="openSidePanel(\''+k+'\')">'+evHtml+'</div></div>';
-    });
-  }
-  html += '</div></div>';
+  
+  html += '</div>';
   document.getElementById("monthYearLabel").innerHTML = 'Week of ' + weekDates[0].toLocaleDateString('en-GB',{month:'short', day:'numeric'});
   container.innerHTML = html;
 }
 
 function renderDayView(container) {
-  let k = dkey(currentCalMonth); let events = DB[k]?.events||[];
-  let html = '<div class="calendar-container"><div class="calendar-header"><div class="calendar-header-cell time">Time</div><div class="calendar-header-cell">'+currentCalMonth.toLocaleDateString('en-GB',{weekday:'long', month:'short', day:'numeric'})+'</div></div><div class="calendar-body">';
-  for(let hour=0; hour<24; hour++) {
-    let timeStr = hour.toString().padStart(2,'0') + ':00';
-    html += '<div class="time-slot">' + timeStr + '</div>';
-    let eventsInHour = events.filter(e => { let [h,m] = e.start.split(':').map(Number); return h === hour; });
-    let evHtml = eventsInHour.map((e,idx) => {
-      let [sh,sm] = e.start.split(':').map(Number); let [eh,em] = e.end.split(':').map(Number);
-      let duration = Math.max(1, (eh-sh) || 1); let top = (sm/60)*60; let left = (idx * 45) + 2;
-      let color = getTaskColor(e.title);
-      // MODIFIED: Stripped custom time classes out cleanly; events are cleanly styled blocks with titles only
-      return '<div class="event-block" style="top:'+top+'px; height:'+(duration*60)+'px; left:'+left+'px; right:auto; width:40%; background:'+color+'22; border-color:'+color+'; color:'+color+'" onclick="event.stopPropagation()" title="'+escapeHtml(e.title)+'"><button class="event-delete" onclick="deleteEventFromCal(\''+k+'\','+events.indexOf(e)+', event)">✕</button><div class="event-title">'+escapeHtml(e.title)+'</div></div>';
-    }).join("");
-    html += '<div class="day-column" style="grid-column: 2;"><div class="hour-slot" onclick="openSidePanel(\''+k+'\')">'+evHtml+'</div></div>';
+  let k = dkey(currentCalMonth);
+  let events = DB[k]?.events || [];
+  
+  let html = '<div class="day-view-grid" onclick="openSidePanel(\''+k+'\')">';
+  html += '<div>';
+  html += '<div class="week-header" style="font-size:16px; margin-bottom:12px;">'+currentCalMonth.toLocaleDateString('en-GB',{weekday:'long', month:'short', day:'numeric'})+'</div>';
+  html += '<div class="day-slot">';
+  
+  if(events.length === 0) {
+    html += '<div style="color:var(--text3); padding:40px 0;">No scheduled events today. Click to add.</div>';
+  } else {
+    events.forEach(e => {
+      html += '<div class="day-evt" style="background:'+getTaskColor(e.title)+'">' + escapeHtml(e.title) + '</div>';
+    });
   }
-  html += '</div></div>';
+  
+  html += '</div></div></div>';
   document.getElementById("monthYearLabel").innerHTML = currentCalMonth.toLocaleDateString('en-GB',{weekday:'long', month:'short', day:'numeric'});
   container.innerHTML = html;
 }
 
-function deleteEventFromCal(k, idx, event) {
-  event.stopPropagation();
-  if(DB[k] && DB[k].events && DB[k].events[idx]) {
-    DB[k].events.splice(idx, 1);
-    scheduleSync(); renderCalendar(); renderDayEvents(k);
+function executeDeterministicPlan(inputElement, responseElement) {
+  let inp = inputElement.value; 
+  if(!inp) return;
+  
+  responseElement.classList.add("show"); 
+  responseElement.innerHTML = "Processing entry...";
+  
+  let parsed = parseNaturalEvent(inp);
+  
+  if (parsed) {
+    ensureDay(parsed.dateKey);
+    DB[parsed.dateKey].events.push({
+      title: parsed.title,
+      start: parsed.start,
+      end: parsed.end,
+      type: "study"
+    });
+    scheduleSync(); 
+    fullRender();
+    responseElement.innerHTML = `✓ Successfully added event "<strong>${escapeHtml(parsed.title)}</strong>" to ${parsed.dateKey}`;
+    inputElement.value = "";
+  } else {
+    // Fallback block if input doesn't follow strict text rules: save directly as a standalone task on the active layout frame
+    let targetKey = dkey(currentFocusDate);
+    ensureDay(targetKey);
+    DB[targetKey].tasks.push({text: inp.trim(), done: false, type: "productive", prio: "mid", timeSpent: 0});
+    scheduleSync();
+    renderTasks();
+    responseElement.innerHTML = `✓ Created basic task "<strong>${escapeHtml(inp)}</strong>" on currently focused window view index.`;
+    inputElement.value = "";
   }
 }
 
-async function aiPlanTasks(){
-  let inp=document.getElementById("aiTaskInput").value.trim(); if(!inp) return;
-  let resp=document.getElementById("aiTaskResp"); resp.classList.add("show"); resp.innerHTML="📅 understanding your tasks...";
-  let today = new Date(); let todayStr = today.toISOString().split('T')[0];
-  let systemPrompt = `You are a planner assistant. Today's date is ${todayStr}.
-The user will describe tasks using the format: [Task name] from [time] to [time] on [date] [month]
-Example input: "Gym from 7:00pm to 11:59pm on 15 June"
-Parse every task mentioned and return ONLY a JSON array. Each item:
-{ "text": "task name", "date": "YYYY-MM-DD", "startTime": "HH:MM", "endTime": "HH:MM", "type": "productive" or "nonproductive", "prio": "high", "mid", or "low" }
-Rules: Convert "6pm" to "18:00", "9pm" to "21:00", etc. Return ONLY the JSON array.`;
-  try {
-    let apiResp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, system: systemPrompt, messages: [{ role: "user", content: inp }] })
-    });
-    let data = await apiResp.json();
-    let raw = data.content?.map(b => b.text||"").join("").trim();
-    raw = raw.replace(/```json|```/g,"").trim();
-    let tasks = JSON.parse(raw);
-    for(let t of tasks){
-      if(!t.date || !t.text) continue;
-      ensureDay(t.date);
-      DB[t.date].tasks.push({ text: t.text, done: false, type: t.type||"productive", prio: t.prio||"mid", timeSpent: 0, startTime: t.startTime||"", endTime: t.endTime||"" });
-    }
-    scheduleSync(); renderTasks();
-    resp.innerHTML = `added ${tasks.length} task(s)`;
-    document.getElementById("aiTaskInput").value="";
-  } catch(err) { resp.innerHTML = "❌ Error: " + err.message; }
+function setCalViewMode(mode) {
+  calViewMode = mode;
+  renderCalendar();
 }
 
-async function aiScheduleCal(){
-  let inp=document.getElementById("aiCalInput").value.trim(); if(!inp) return;
-  let resp=document.getElementById("aiCalResp"); resp.classList.add("show"); resp.innerHTML="⏰ scheduling your events...";
-  let today = new Date(); let todayStr = today.toISOString().split('T')[0];
-  let systemPrompt = `You are a calendar scheduling assistant. Today's date is ${todayStr}.
-The user will describe events using the format: [Event name] from [time] to [time] on [date] [month]
-Example input: "Gym from 7:00pm to 11:59pm on 15 June"
-Parse and return ONLY a JSON array. Each item:
-{ "title": "event name", "date": "YYYY-MM-DD", "start": "HH:MM", "end": "HH:MM", "type": "study", "hangout", or "main" }
-Rules: Convert "6pm" to "18:00", "9pm" to "21:00", etc. Return ONLY the JSON array.`;
-  try {
-    let apiResp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, system: systemPrompt, messages: [{ role: "user", content: inp }] })
-    });
-    let data = await apiResp.json();
-    let raw = data.content?.map(b => b.text||"").join("").trim();
-    raw = raw.replace(/```json|```/g,"").trim();
-    let events = JSON.parse(raw);
-    for(let ev of events){
-      if(!ev.date || !ev.title || !ev.start || !ev.end) continue;
-      ensureDay(ev.date);
-      DB[ev.date].events.push({ title: ev.title, start: ev.start, end: ev.end, type: ev.type||"main" });
-    }
-    scheduleSync(); renderCalendar();
-    resp.innerHTML = `added ${events.length} event(s)`;
-    document.getElementById("aiCalInput").value="";
-  } catch(err) { resp.innerHTML = "❌ Error: " + err.message; }
+function fullRender(){ 
+  renderTasks(); 
+  renderCalendar(); 
+  renderProgressSection(); 
 }
 
-function fullRender(){ renderTasks(); renderCalendar(); renderProgressSection(); }
 function setFocusDate(dateStr){ 
-  let d=new Date(dateStr+"T12:00:00"); if(!isNaN(d)) currentFocusDate=d; renderTasks(); 
+  let d=new Date(dateStr+"T12:00:00"); 
+  if(!isNaN(d)) currentFocusDate=d; 
+  renderTasks(); 
 }
-function toggleDay(k){ document.getElementById("card-"+k).classList.toggle("open"); }
-function escapeHtml(s){ return s.replace(/[&<>]/g,m=>{ if(m==='&')return'&amp;'; if(m==='<')return'&lt;'; return'&gt;'; }); }
 
-document.getElementById("prevDayBtn")?.addEventListener("click",()=>{ let d=new Date(currentFocusDate); d.setDate(d.getDate()-1); currentFocusDate=d; renderTasks(); });
-document.getElementById("nextDayBtn")?.addEventListener("click",()=>{ let d=new Date(currentFocusDate); d.setDate(d.getDate()+1); currentFocusDate=d; renderTasks(); });
-document.getElementById("todayTasksBtn")?.addEventListener("click",()=>{ currentFocusDate=new Date(); renderTasks(); });
-document.querySelectorAll(".mode[data-mode]").forEach(b=>b.addEventListener("click",function(){ viewMode=this.dataset.mode; document.querySelectorAll(".mode[data-mode]").forEach(m=>m.classList.remove("active")); this.classList.add("active"); renderTasks(); }));
-document.getElementById("prevMonthBtn")?.addEventListener("click",()=>{ currentCalMonth.setMonth(currentCalMonth.getMonth()-1); renderCalendar(); });
-document.getElementById("nextMonthBtn")?.addEventListener("click",()=>{ currentCalMonth.setMonth(currentCalMonth.getMonth()+1); renderCalendar(); });
-document.getElementById("todayCalBtn")?.addEventListener("click",()=>{ currentCalMonth=new Date(); renderCalendar(); });
-document.querySelectorAll(".mode[data-calmode]").forEach(b=>b.addEventListener("click",function(){ calViewMode=this.dataset.calmode; document.querySelectorAll(".mode[data-calmode]").forEach(m=>m.classList.remove("active")); this.classList.add("active"); renderCalendar(); }));
-document.getElementById("aiTaskRun")?.addEventListener("click",aiPlanTasks);
-document.getElementById("aiCalRun")?.addEventListener("click",aiScheduleCal);
+function escapeHtml(s){ 
+  if(!s) return "";
+  return s.replace(/[&<>]/g,m=>{
+    if(m==='&')return'&amp;';
+    if(m==='<')return'&lt;';
+    return'&gt;';
+  }); 
+}
+
+// Global UI Layout Listeners 
+document.getElementById("prevDayBtn")?.addEventListener("click",()=>{ 
+  let d=new Date(currentFocusDate); 
+  d.setDate(d.getDate()-1); 
+  currentFocusDate=d; 
+  renderTasks(); 
+});
+
+document.getElementById("nextDayBtn")?.addEventListener("click",()=>{ 
+  let d=new Date(currentFocusDate); 
+  d.setDate(d.getDate()+1); 
+  currentFocusDate=d; 
+  renderTasks(); 
+});
+
+document.getElementById("todayTasksBtn")?.addEventListener("click",()=>{ 
+  currentFocusDate=new Date(); 
+  renderTasks(); 
+});
+
+document.getElementById("prevMonthBtn")?.addEventListener("click",()=>{ 
+  currentCalMonth.setMonth(currentCalMonth.getMonth()-1); 
+  renderCalendar(); 
+});
+
+document.getElementById("nextMonthBtn")?.addEventListener("click",()=>{ 
+  currentCalMonth.setMonth(currentCalMonth.getMonth()+1); 
+  renderCalendar(); 
+});
+
+document.getElementById("todayCalBtn")?.addEventListener("click",()=>{ 
+  currentCalMonth=new Date(); 
+  renderCalendar(); 
+});
+
+document.getElementById("aiTaskRun")?.addEventListener("click", () => {
+  executeDeterministicPlan(document.getElementById("aiTaskInput"), document.getElementById("aiTaskResp"));
+});
+document.getElementById("aiCalRun")?.addEventListener("click", () => {
+  executeDeterministicPlan(document.getElementById("aiCalInput"), document.getElementById("aiCalResp"));
+});
+
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",function(){ 
-  let v=this.dataset.tab; document.querySelectorAll(".view").forEach(vw=>vw.classList.remove("active")); document.getElementById(v+"View").classList.add("active");
-  document.querySelectorAll(".tab").forEach(tt=>tt.classList.remove("active")); this.classList.add("active");
-  if(v==="progress") renderProgressSection(); if(v==="calendar") renderCalendar(); if(v==="tasks") renderTasks(); 
+  let v=this.dataset.tab; 
+  document.querySelectorAll(".view").forEach(vw=>vw.classList.remove("active")); 
+  document.getElementById(v+"View").classList.add("active"); 
+  document.querySelectorAll(".tab").forEach(tt=>tt.classList.remove("active")); 
+  this.classList.add("active"); 
+  if(v==="progress") renderProgressSection(); 
+  if(v==="calendar") renderCalendar(); 
+  if(v==="tasks") renderTasks(); 
 }));
 
-function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
-function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
-let savedKey = lsGet("planner_key");
-if(savedKey){ apiKey=savedKey; binId=lsGet("planner_bin")||""; loadFromCloud(); }
-else {
-  let key = null; try { key = prompt("Enter JSONbin.io API key:"); } catch(e){}
-  if(key && key.trim()){ apiKey=key.trim(); lsSet("planner_key", apiKey); loadFromCloud(); }
-  else { initRoadmap(); fullRender(); }
+let savedKey=localStorage.getItem("planner_key"); 
+if(savedKey){ 
+  apiKey=savedKey; 
+  binId=localStorage.getItem("planner_bin")||""; 
+  loadFromCloud(); 
+} else { 
+  let key=prompt("Enter JSONbin.io API key (free cross-device sync) — or leave empty to work offline:"); 
+  if(key && key.trim()){ 
+    apiKey=key.trim(); 
+    localStorage.setItem("planner_key",apiKey); 
+    loadFromCloud(); 
+  } else { 
+    initRoadmap(); 
+    fullRender(); 
+  } 
 }
-window.closeSidePanel=closeSidePanel; window.addPanelEvent=addPanelEvent; window.setPanelType=setPanelType; window.deleteEvent=deleteEvent; window.deleteEventFromCal=deleteEventFromCal;
-window.toggleDay=toggleDay; window.addTaskFromInput=addTaskFromInput; window.toggleTaskDone=toggleTaskDone; window.editTaskText=editTaskText; window.cycleTaskType=cycleTaskType; 
-window.cyclePrio=cyclePrio; window.deleteTask=deleteTask; window.updateNote=updateNote; window.logTaskTime=logTaskTime; window.setFocusDate=setFocusDate; 
-window.cycleTopicStatus=cycleTopicStatus; window.updateTopicHours=updateTopicHours; window.cycleSubStatus=cycleSubStatus; window.updateSubHours=updateSubHours; window.openSidePanel=openSidePanel;
+
+window.closeSidePanel=closeSidePanel; 
+window.addPanelEvent=addPanelEvent; 
+window.setPanelType=setPanelType; 
+window.deleteEvent=deleteEvent; 
+window.addTaskFromInput=addTaskFromInput; 
+window.toggleTaskDone=toggleTaskDone; 
+window.editTaskText=editTaskText; 
+window.cycleTaskType=cycleTaskType; 
+window.cyclePrio=cyclePrio; 
+window.deleteTask=deleteTask; 
+window.updateNote=updateNote; 
+window.logTaskTime=logTaskTime; 
+window.setFocusDate=setFocusDate; 
+window.cycleTopicStatus=cycleTopicStatus; 
+window.updateTopicHours=updateTopicHours; 
+window.cycleSubStatus=cycleSubStatus; 
+window.updateSubHours=updateSubHours;
+window.openSidePanel=openSidePanel;
+window.setCalViewMode=setCalViewMode;
 </script>
 </body>
 </html>
