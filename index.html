@@ -137,7 +137,13 @@
     .subtopic-list { margin: 10px 0; padding: 0; border: none; width: 100%; display: flex; flex-direction: column; align-items: center; }
     .subtopic-item { display: flex; align-items: center; gap: 12px; padding: 6px 0; font-size: 14px; flex-wrap: wrap; width: 100%; justify-content: center; text-align: center; }
     .sub-status { width: 110px; font-size: 11px; padding: 4px 10px; border-radius: 20px; text-align: center; cursor: pointer; font-weight: 600; }
+    
     .ai-suggestion-box { background:var(--bg3); border-radius:24px; padding:24px; margin: 25px 0; width: 100%; border:1px solid var(--primary-border); text-align: center; font-size: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .stats-matrix-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; width: 100%; margin-top: 14px; max-width: 700px; }
+    .stats-matrix-pill { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 10px 14px; text-align: center; }
+    .stats-matrix-val { font-size: 18px; font-weight: 800; color: var(--primary); }
+    .stats-matrix-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; margin-top: 2px; font-weight: 600; }
+    
     .resource-link { font-size:12px; color:var(--primary); text-decoration:none; margin-left:8px; font-weight: bold; }
     .resource-link:hover { text-decoration:underline; }
     .phase-progress { height:8px; background:var(--bg3); border-radius:6px; margin:10px 0 15px; overflow:hidden; width: 100%; max-width: 500px; }
@@ -210,8 +216,9 @@
   <div class="progress-overview" id="progressOverview"></div>
   <div id="phasesContainer"></div>
   <div id="aiProgressAdvice" class="ai-suggestion-box">
-    <div style="font-weight:600; margin-bottom:6px;">Study recommendation</div>
-    <div id="speedAdviceText">loading...</div>
+    <div style="font-weight:700; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">Study Analysis Matrix</div>
+    <div id="speedAdviceText">loading recommendation...</div>
+    <div class="stats-matrix-grid" id="statsMatrixGrid"></div>
   </div>
 </div>
 
@@ -226,7 +233,7 @@
     </div>
     <div style="display:flex; gap:6px; margin:10px 0">
       <button class="nav-btn" style="flex:1" onclick="setPanelType('hangout')">🎉 Fun</button>
-      <button class="nav-btn" style="flex:1" onclick="setPanelType('study(')">📚 Study</button>
+      <button class="nav-btn" style="flex:1" onclick="setPanelType('study')">📚 Study</button>
     </div>
     <button class="nav-btn" style="width:100%; border-color: var(--productive); color: var(--productive);" onclick="addPanelEvent()">+ Add Event</button>
     <div id="panelEventsList" style="margin-top:12px"></div>
@@ -400,26 +407,48 @@ function recalcTopicProgress(topic) {
   let totalSpent = topic.subtopics.reduce((s,sub)=>s+sub.spentHours,0);
   topic.spentHours = totalSpent;
   let allDone = topic.subtopics.every(s=>s.status==="done");
-  if(allDone) topic.status = "done";
-  else if(totalSpent > 0) topic.status = "ongoing";
-  else topic.status = "not started";
+  let allNot = topic.subtopics.every(s=>s.status==="not started");
+  
+  if(allDone) {
+    topic.status = "done";
+  } else if(allNot && totalSpent === 0) {
+    topic.status = "not started";
+  } else {
+    topic.status = "ongoing";
+  }
 }
 
-function recomputeProgress() {
-  let totalSpent = ROADMAP.reduce((s,t)=>s+t.spentHours,0);
-  let totalTarget = ROADMAP.reduce((s,t)=>s+t.targetHours,0);
-  let completedTopics = ROADMAP.filter(t=>t.status==="done").length;
-  let percent = totalTarget>0 ? (totalSpent/totalTarget)*100 : 0;
-  let remaining = Math.max(0, totalTarget - totalSpent);
-  let daysLeft = Math.max(0, (new Date(2026,8,8) - new Date())/(1000*3600*24));
-  let dailyNeeded = daysLeft>0 ? remaining/daysLeft : remaining;
-  let daysPassed = Math.max(1, (new Date() - new Date(2026,5,12))/(1000*3600*24));
-  let actualPace = totalSpent/daysPassed;
-  return { totalSpent, totalTarget, completedTopics, totalTopics:ROADMAP.length, percent, remaining, dailyNeeded, actualPace };
+function computeLoggedStats() {
+  let weeklyTotal = 0;
+  let monthlyTotal = 0;
+  let now = new Date();
+  
+  let startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+  startOfWeek.setHours(0,0,0,0);
+  
+  let startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  
+  for (let k in DB) {
+    let parts = k.split("-");
+    if(parts.length !== 3) continue;
+    let entryDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    
+    let dayTasks = DB[k].tasks || [];
+    let minutesLogged = dayTasks.reduce((s, t) => s + (t.timeSpent || 0), 0);
+    let hoursLogged = minutesLogged / 60;
+    
+    if (entryDate >= startOfWeek) weeklyTotal += hoursLogged;
+    if (entryDate >= startOfMonth) monthlyTotal += hoursLogged;
+  }
+  
+  return { weeklyTotal, monthlyTotal };
 }
 
 function renderProgressSection() {
   let stats = recomputeProgress();
+  let loggedActivity = computeLoggedStats();
+  
   document.getElementById("progressOverview").innerHTML = 
     '<div class="overview-card"><div class="stat-num" style="color:var(--primary)">' + Math.round(stats.totalSpent) + 'h</div><div class="stat-label">hours spent</div></div>' +
     '<div class="overview-card"><div class="stat-num" style="color:var(--productive)">' + stats.totalTarget + 'h</div><div class="stat-label">total target</div></div>' +
@@ -467,18 +496,32 @@ function renderProgressSection() {
   
   document.getElementById("phasesContainer").innerHTML = html;
   
-  let advice = "";
   let incomplete = ROADMAP.filter(t=>t.status!=="done").slice(0,2);
   let nextTopic = incomplete.length ? incomplete[0].topic : "All topics completed!";
   
-  if(stats.dailyNeeded > stats.actualPace + 0.5) 
-    advice = 'To finish by Sep 8 you need ~' + stats.dailyNeeded.toFixed(1) + 'h/day (current ' + stats.actualPace.toFixed(1) + 'h/day). Focus next on: <strong>' + nextTopic + '</strong>.';
-  else if(stats.dailyNeeded <= stats.actualPace) 
-    advice = 'Great pace! Keep going. Next recommended: <strong>' + nextTopic + '</strong>.';
-  else 
-    advice = 'Try to complete <strong>' + nextTopic + '</strong> next. You need ' + stats.dailyNeeded.toFixed(1) + 'h/day.';
-  
+  let advice = 'Recommended Focus: <strong>' + nextTopic + '</strong>.';
   document.getElementById("speedAdviceText").innerHTML = advice;
+  
+  let targetEnd = new Date(2026, 8, 8);
+  let currentMoment = new Date();
+  let remainingDays = Math.max(1, Math.ceil((targetEnd - currentMoment) / (1000 * 60 * 60 * 24)));
+  let remainingHours = Math.max(0, stats.totalTarget - stats.totalSpent);
+  let avgNeededToFinish = remainingHours / remainingDays;
+  
+  document.getElementById("statsMatrixGrid").innerHTML = `
+    <div class="stats-matrix-pill">
+      <div class="stats-matrix-val">${loggedActivity.weeklyTotal.toFixed(1)}h</div>
+      <div class="stats-matrix-lbl">Avg hrs this week</div>
+    </div>
+    <div class="stats-matrix-pill">
+      <div class="stats-matrix-val">${loggedActivity.monthlyTotal.toFixed(1)}h</div>
+      <div class="stats-matrix-lbl">Avg hrs this month</div>
+    </div>
+    <div class="stats-matrix-pill">
+      <div class="stats-matrix-val">${avgNeededToFinish.toFixed(1)}h/day</div>
+      <div class="stats-matrix-lbl">Avg hrs needed to finish</div>
+    </div>
+  `;
 }
 
 function cycleTopicStatus(id){ 
@@ -486,11 +529,17 @@ function cycleTopicStatus(id){
   if(t){ 
     let map={"not started":"ongoing","ongoing":"done","done":"not started"}; 
     t.status=map[t.status]; 
-    if(t.status==="done") t.subtopics.forEach(s=>{ s.status="done"; s.spentHours=s.targetHours; }); 
+    if(t.status==="done") {
+      t.subtopics.forEach(s=>{ s.status="done"; s.spentHours=s.targetHours; }); 
+    } else if(t.status==="not started") {
+      t.subtopics.forEach(s=>{ s.status="not started"; s.spentHours=0; }); 
+    }
+    t.spentHours = t.subtopics.reduce((s, sub) => s + sub.spentHours, 0);
     scheduleSync(); 
     renderProgressSection(); 
   } 
 }
+
 function updateTopicHours(id,val){ 
   let t=ROADMAP.find(x=>x.id===id); 
   if(t){ 
@@ -499,18 +548,24 @@ function updateTopicHours(id,val){
     renderProgressSection(); 
   } 
 }
+
 function cycleSubStatus(topicId, subIdx){ 
   let t=ROADMAP.find(x=>x.id===topicId); 
   if(t && t.subtopics[subIdx]){ 
     let s=t.subtopics[subIdx]; 
     let map={"not started":"ongoing","ongoing":"done","done":"not started"}; 
     s.status=map[s.status]; 
-    if(s.status==="done") s.spentHours=s.targetHours; 
+    if(s.status==="done") {
+      s.spentHours=s.targetHours; 
+    } else if(s.status==="not started") {
+      s.spentHours=0;
+    }
     recalcTopicProgress(t); 
     scheduleSync(); 
     renderProgressSection(); 
   } 
 }
+
 function updateSubHours(topicId, subIdx, val){ 
   let t=ROADMAP.find(x=>x.id===topicId); 
   if(t && t.subtopics[subIdx]){ 
@@ -758,13 +813,14 @@ function renderCalendar(){
   let container = document.getElementById("calendarContainer");
   container.innerHTML = "";
   
-  // Toggles arrow layout dynamically based on targeted mode properties
   document.getElementById("prevMonthBtn").style.display = calViewMode === "month" ? "inline-block" : "none";
   document.getElementById("nextMonthBtn").style.display = calViewMode === "month" ? "inline-block" : "none";
   document.getElementById("prevWeekBtn").style.display = calViewMode === "week" ? "inline-block" : "none";
   document.getElementById("nextWeekBtn").style.display = calViewMode === "week" ? "inline-block" : "none";
   document.getElementById("prevCalDayBtn").style.display = calViewMode === "day" ? "inline-block" : "none";
   document.getElementById("nextCalDayBtn").style.display = calViewMode === "day" ? "inline-block" : "none";
+  
+  document.getElementById("todayCalBtn").style.display = calViewMode === "day" ? "inline-block" : "none";
   
   if(calViewMode === "month") {
     renderMonthView(container);
@@ -919,8 +975,6 @@ function setCalViewMode(mode) {
 
 function setTaskViewMode(mode) {
   viewMode = mode;
-  document.getElementById("taskModeDayBtn").classList.toggle("active", mode === "day");
-  document.getElementById("taskModeWeekBtn").classList.toggle("active", mode === "week");
   renderTasks();
 }
 
