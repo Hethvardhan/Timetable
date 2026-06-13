@@ -20,7 +20,7 @@
     }
     body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; line-height: 1.5; }
     .topbar { position: sticky; top:0; background: rgba(9,12,21,0.95); backdrop-filter: blur(14px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:60px; z-index:200; }
-    .logo { width: 60px; } /* Removed text, acts as a layout spacer to balance the right sync bar */
+    .logo { width: 40px; } 
     .tabs { display:flex; gap:6px; background:var(--bg3); padding:3px; border-radius:40px; margin: 0 auto; }
     .tab { background:transparent; border:none; padding:6px 18px; border-radius:32px; font-weight:500; color:var(--text2); cursor:pointer; transition:0.2s; }
     .tab.active { background:var(--primary-bg); color:var(--primary); }
@@ -28,7 +28,7 @@
     .sync-dot { width:12px; height:12px; border-radius:10px; background:var(--low); }
     .sync-dot.saving { background:var(--mid); animation:pulse 0.9s infinite; }
     .sync-dot.error { background:var(--high); }
-    #syncLabel { font-size:13px !important; font-weight:600; color:var(--text2) !important; display: flex; align-items: center; gap: 4px; }
+    #syncLabel { font-size:14px !important; font-weight:600; color:var(--text2) !important; display: flex; align-items: center; gap: 6px; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .view { display:none; padding:20px 18px 80px; max-width:1200px; margin:0 auto; }
     .view.active { display:block; }
@@ -40,8 +40,8 @@
     .nav-group { display:flex; gap:8px; align-items:center; margin: 0 auto; }
     .nav-btn { background:var(--bg2); border:1px solid var(--border); border-radius:40px; padding:6px 14px; font-size:13px; cursor:pointer; transition:0.2s; color:var(--primary); }
     .nav-btn:hover { border-color:var(--primary); background:var(--primary-bg); }
-    .day-label { font-family:'Syne',sans-serif; font-weight:700; font-size:16px; margin: 0 10px; }
-    .mode-group { display:none; } /* Hidden to enforce clean view centralization */
+    .day-label { font-family:'Syne',sans-serif; font-weight:700; font-size:18px; margin: 0 12px; text-align: center; }
+    .mode-group { display:none; } 
     .week-strip { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:20px; }
     .strip-cell { background:var(--bg2); border:1px solid var(--border); border-radius:18px; text-align:center; padding:8px 4px; cursor:pointer; }
     .strip-cell.today { border-color:var(--productive); }
@@ -53,27 +53,24 @@
     .ai-resp { background:var(--bg3); border-left:3px solid var(--primary); border-radius:16px; padding:14px; margin: 0 auto 18px; max-width: 700px; font-size:13px; color:var(--text2); display:none; text-align: center; }
     .ai-resp.show { display:block; }
     .day-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; margin: 0 auto 14px; max-width: 800px; overflow:hidden; }
-    .card-header { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; }
+    .card-header { display:flex; align-items:center; gap:12px; padding:14px 18px; }
     .badge { width:56px; height:56px; background:var(--bg3); border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .badge.today { background:var(--productive-bg); border:1px solid var(--productive); }
     .badge-weekday { font-size:9px; color:var(--text3); text-transform:uppercase; }
     .badge-date { font-family:'Syne'; font-size:22px; font-weight:800; }
     .day-info { flex:1; text-align: center; }
-    .day-title { font-family:'Syne', sans-serif; font-weight:700; font-size:16px; }
+    .day-title { font-family:'Syne', sans-serif; font-weight:800; font-size:18px; text-transform: uppercase; letter-spacing: 0.5px; }
     .pill-strip { display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; justify-content: center; }
     .pill { font-size:9px; padding:3px 10px; border-radius:30px; background:var(--bg4); border:1px solid var(--border); }
     .pill-prod { background:var(--productive-bg); color:var(--productive); border-color:var(--productive); }
     .pill-non { background:var(--nonprod-bg); color:var(--nonprod); border-color:var(--nonprod); }
-    .chevron { color:var(--text3); transition:0.2s; }
-    .day-card.open .chevron { transform:rotate(90deg); }
-    .card-body { display:none; padding:0 18px 18px; }
-    .day-card.open .card-body { display:block; }
-    .progress-bar { height:4px; background:var(--bg3); border-radius:6px; margin:10px 0 6px; }
+    .card-body { padding:18px; }
+    .progress-bar { height:4px; background:var(--bg3); border-radius:6px; margin:10px 0 18px; }
     .progress-fill { height:4px; background:linear-gradient(90deg,var(--primary),var(--productive)); border-radius:6px; transition:width 0.3s; }
-    .task-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+    .task-row { display:flex; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
     .check { width:22px; height:22px; border-radius:8px; border:1.5px solid var(--border2); display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg3);}
     .check.done { background:var(--productive); border-color:var(--productive); color:#000; }
-    .task-text { flex:2; background:transparent; border:none; color:var(--text); font-size:13px; outline:none; min-width:120px; }
+    .task-text { flex:2; background:transparent; border:none; color:var(--text); font-size:14px; outline:none; min-width:120px; }
     .task-text.done { text-decoration:line-through; color:var(--text3); }
     .task-type { font-size:9px; padding:4px 8px; border-radius:30px; cursor:pointer; font-weight:500; text-transform:uppercase; }
     .type-prod { background:var(--productive-bg); color:var(--productive); }
@@ -88,30 +85,30 @@
     .task-duration { font-family:'JetBrains Mono'; font-size:10px; color:var(--text3); min-width:60px; }
     .add-task { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center; }
     .add-input { flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:40px; padding:10px 14px; font-size:13px; color:var(--text); }
-    .event-item { background:var(--bg3); border-radius:18px; padding:8px 12px; margin:6px 0; display:flex; align-items:center; gap:10px; font-size:13px; font-weight: bold; justify-content: center; text-align: center; }
+    .event-item { border-radius:24px; padding:12px 18px; margin:8px 0; display:flex; align-items:center; gap:10px; font-size:15px; font-weight: 800; justify-content: center; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.1); }
     .notes-area { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:18px; padding:12px; margin-top:12px; color:var(--text2); resize:vertical; }
     
     .cal-grid { background:var(--bg2); border:1px solid var(--border); border-radius:24px; overflow:hidden; margin-top:12px; }
     .cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; padding:12px 0; background:var(--bg3); font-family:'JetBrains Mono'; font-size:11px; color:var(--text3); }
     .cal-days { display:grid; grid-template-columns:repeat(7,1fr); }
-    .cal-cell { min-height:140px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:8px 6px; cursor:pointer; position:relative; display: flex; flex-direction: column; gap: 4px; }
+    .cal-cell { min-height:150px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:10px 8px; cursor:pointer; position:relative; display: flex; flex-direction: column; gap: 6px; }
     .cal-cell:hover { background:var(--bg3); }
     .cal-cell.today { background:var(--productive-bg); }
     .cal-cell.other-month { opacity:0.4; }
-    .cal-day-num { font-family:'Syne'; font-size:14px; font-weight:700; margin-bottom:4px; }
-    .cal-evt { font-size:11px; font-weight: 700; padding:4px 8px; border-radius:20px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align: center; color: #000 !important; }
+    .cal-day-num { font-family:'Syne'; font-size:15px; font-weight:800; margin-bottom:4px; }
+    .cal-evt { font-size:11px; font-weight: 800; padding:6px 10px; border-radius:20px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align: center; color: #000 !important; text-transform: uppercase; letter-spacing: 0.3px; box-shadow: 0 2px 4px rgba(0,0,0,0.12); }
     
-    .week-view-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; border-radius:24px; overflow:hidden; margin-top:12px; }
-    .week-view-grid > div { background:var(--bg2); padding:12px; min-height: 120px; border: 1px solid var(--border); border-radius: 18px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
-    .week-header { font-family:'Syne'; font-weight:800; font-size:14px; text-align:center; border-bottom: 1px solid var(--border); width: 100%; padding-bottom: 6px; color: var(--primary); }
-    .week-header.today { background:var(--productive-bg); border-radius: 8px; }
-    .week-slot { display: flex; flex-direction: column; gap: 4px; width: 100%; justify-content: center; }
-    .week-evt { border-radius:20px; padding:6px 10px; font-size:12px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; display: block; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-transform: uppercase; }
+    .week-view-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:10px; border-radius:24px; overflow:hidden; margin-top:12px; }
+    .week-view-grid > div { background:var(--bg2); padding:16px; min-height: 200px; border: 1px solid var(--border); border-radius: 24px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .week-header { font-family:'Syne'; font-weight:800; font-size:15px; text-align:center; border-bottom: 1px solid var(--border); width: 100%; padding-bottom: 8px; color: var(--primary); text-transform: uppercase; }
+    .week-header.today { background:var(--productive-bg); border-radius: 12px; padding: 4px; }
+    .week-slot { display: flex; flex-direction: column; gap: 6px; width: 100%; justify-content: center; margin-top: 10px; }
+    .week-evt { border-radius:20px; padding:8px 12px; font-size:12px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; display: block; box-shadow: 0 3px 6px rgba(0,0,0,0.18); text-transform: uppercase; letter-spacing: 0.3px; }
     
-    .day-view-grid { display:flex; flex-direction: column; gap:8px; border-radius:24px; margin-top:12px; max-width: 600px; margin-left: auto; margin-right: auto; }
-    .day-view-grid > div { background:var(--bg2); padding:16px; border: 1px solid var(--border); border-radius: 20px; text-align: center; }
-    .day-slot { display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; width: 100%; }
-    .day-evt { border-radius:20px; padding:8px 16px; font-size:13px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; max-width: 400px; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .day-view-grid { display:flex; flex-direction: column; gap:10px; border-radius:24px; margin-top:12px; max-width: 650px; margin-left: auto; margin-right: auto; }
+    .day-view-grid > div { background:var(--bg2); padding:24px; border: 1px solid var(--border); border-radius: 24px; text-align: center; }
+    .day-slot { display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; width: 100%; margin-top: 12px; }
+    .day-evt { border-radius:24px; padding:10px 20px; font-size:14px; font-weight: 800; text-align: center; color: #000 !important; width: 100%; max-width: 450px; text-transform: uppercase; box-shadow: 0 4px 8px rgba(0,0,0,0.2); letter-spacing: 0.5px; }
     
     .progress-overview { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; justify-content: center; }
     .overview-card { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:16px; flex:1; max-width:220px; min-width:160px; text-align: center; }
@@ -138,7 +135,7 @@
     @media(max-width:500px){ .side-panel{ width:100%; } }
     button, .nav-btn, .mode, .ai-btn, .log-time-btn { font-family: 'Outfit', sans-serif; }
   </style>
-</head>head
+</head>
 <body>
 <div class="topbar">
   <div class="logo"></div>
@@ -164,7 +161,7 @@
     </div>
   </div>
   <div class="ai-bar">
-    <input type="text" id="aiTaskInput" class="ai-input" placeholder="Example: Gym from 7:00pm to 11:59pm on 14 June">
+    <input type="text" id="aiTaskInput" class="ai-input" placeholder="Gym from 7:00pm to 8:00pm on 15 June">
     <button class="ai-btn" id="aiTaskRun">Add</button>
   </div>
   <div id="aiTaskResp" class="ai-resp"></div>
@@ -186,7 +183,7 @@
     </div>
   </div>
   <div class="ai-bar">
-    <input type="text" id="aiCalInput" class="ai-input" placeholder="Example: Leetcode from 11:59am to 12:01pm on 15 June">
+    <input type="text" id="aiCalInput" class="ai-input" placeholder="Leetcode from 11:59am to 12:01pm on 15 June">
     <button class="ai-btn" id="aiCalRun">Schedule</button>
   </div>
   <div id="aiCalResp" class="ai-resp"></div>
@@ -257,14 +254,20 @@ function getTaskColor(name) {
 }
 
 function convertTo24(timeStr) {
-  let t = timeStr.toLowerCase().trim();
+  let t = timeStr.toLowerCase().replace(/\s+/g, ""); 
   let pm = t.includes("pm");
   let am = t.includes("am");
   t = t.replace(/am|pm/g, "").trim();
   
-  let [hStr, mStr = "00"] = t.split(":");
-  let h = parseInt(hStr, 10);
-  let m = parseInt(mStr, 10);
+  let h, m;
+  if (t.includes(":")) {
+    let parts = t.split(":");
+    h = parseInt(parts[0], 10);
+    m = parseInt(parts[1], 10);
+  } else {
+    h = parseInt(t, 10);
+    m = 0;
+  }
   
   if (pm && h < 12) h += 12;
   if (am && h === 12) h = 0;
@@ -273,8 +276,7 @@ function convertTo24(timeStr) {
 }
 
 function parseNaturalEvent(text) {
-  // Regex parsing format: [Task] from [Start] to [End] on [Day] [Month]
-  const regex = /(.*?)\s+from\s+([0-9:apmAPM]+)\s+to\s+([0-9:apmAPM]+)\s+on\s+(\d{1,2})\s+([A-Za-z]+)/i;
+  const regex = /(.*?)\s+from\s+([0-9\s:apmAPM]+)\s+to\s+([0-9\s:apmAPM]+)\s+on\s+(\d{1,2})\s+([A-Za-z]+)/i;
   const match = text.match(regex);
   if (!match) return null;
 
@@ -289,7 +291,7 @@ function parseNaturalEvent(text) {
   };
   
   const month = months[monthStr] !== undefined ? months[monthStr] : new Date().getMonth();
-  const year = 2026; // System base anchor year
+  const year = 2026; 
   const targetDate = new Date(year, month, day);
 
   return {
@@ -803,11 +805,11 @@ function renderDayView(container) {
 }
 
 function executeDeterministicPlan(inputElement, responseElement) {
-  let inp = inputElement.value; 
+  let inp = inputElement.value.trim(); 
   if(!inp) return;
   
   responseElement.classList.add("show"); 
-  responseElement.innerHTML = "Processing entry...";
+  responseElement.innerHTML = "Parsing statement locally...";
   
   let parsed = parseNaturalEvent(inp);
   
@@ -821,16 +823,15 @@ function executeDeterministicPlan(inputElement, responseElement) {
     });
     scheduleSync(); 
     fullRender();
-    responseElement.innerHTML = `✓ Successfully added event "<strong>${escapeHtml(parsed.title)}</strong>" to ${parsed.dateKey}`;
+    responseElement.innerHTML = `✓ Added event "<strong>${escapeHtml(parsed.title)}</strong>" to ${parsed.dateKey}`;
     inputElement.value = "";
   } else {
-    // Fallback block if input doesn't follow strict text rules: save directly as a standalone task on the active layout frame
     let targetKey = dkey(currentFocusDate);
     ensureDay(targetKey);
-    DB[targetKey].tasks.push({text: inp.trim(), done: false, type: "productive", prio: "mid", timeSpent: 0});
+    DB[targetKey].tasks.push({text: inp, done: false, type: "productive", prio: "mid", timeSpent: 0});
     scheduleSync();
     renderTasks();
-    responseElement.innerHTML = `✓ Created basic task "<strong>${escapeHtml(inp)}</strong>" on currently focused window view index.`;
+    responseElement.innerHTML = `✓ Added task "<strong>${escapeHtml(inp)}</strong>" to layout dashboard.`;
     inputElement.value = "";
   }
 }
@@ -861,7 +862,6 @@ function escapeHtml(s){
   }); 
 }
 
-// Global UI Layout Listeners 
 document.getElementById("prevDayBtn")?.addEventListener("click",()=>{ 
   let d=new Date(currentFocusDate); 
   d.setDate(d.getDate()-1); 
