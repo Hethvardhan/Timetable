@@ -160,12 +160,13 @@
     <button class="tab" data-tab="calendar">Calendar</button>
     <button class="tab" data-tab="progress">Progress</button>
   </div>
-  <div class="sync-area">
-    <div id="syncDot" class="sync-dot"></div>
-    <div id="syncLabel">synced</div>
-  </div>
+<div class="sync-area">
+  <div id="syncDot" class="sync-dot"></div>
+  <div id="syncLabel">synced</div>
+  <button onclick="loadFromCloud()" style="background:transparent; border:1px solid var(--border); color:var(--text2); cursor:pointer; margin-left:10px; border-radius:5px;">
+    ⟳ Refresh
+  </button>
 </div>
-
 <div id="tasksView" class="view active">
   <div class="stat-row" id="globalStats"></div>
   <div class="date-nav">
@@ -997,6 +998,12 @@ function escapeHtml(s){
     return'&gt;';
   }); 
 }
+
+  setInterval(() => {
+    if (apiKey && binId) {
+        loadFromCloud();
+    }
+}, 3000);
 
 document.getElementById("prevDayBtn")?.addEventListener("click",()=>{ 
   let d=new Date(currentFocusDate); 
