@@ -2246,8 +2246,23 @@ if(!binId){
 setInterval(checkForUpdates, 5000);
 } else { 
 
-  let key=prompt("Enter JSONbin.io API key (free cross-device sync) — or leave empty to work offline:"); 
+let key = prompt("Enter JSONBin Master Key:");
 
+if(key && key.trim()){
+
+  apiKey = key.trim();
+  localStorage.setItem("planner_key", apiKey);
+
+  let id = prompt("Enter JSONBin Bin ID:");
+
+  if(id && id.trim()){
+    binId = id.trim();
+    localStorage.setItem("planner_bin", binId);
+  }
+
+  loadFromCloud();
+  setInterval(checkForUpdates,5000);
+}
   if(key && key.trim()){ 
 
     apiKey=key.trim(); 
