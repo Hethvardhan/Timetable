@@ -652,46 +652,49 @@ function renderTasks(){
   updatePills(k);
 }
 
-function renderDayTasks(k){
-  let tasks=DB[k].tasks||[]; 
-  let container=document.getElementById("tasks-list-"+k); 
-  if(!container) return; 
-  container.innerHTML="";
+function renderDayTasks(k) {
+  let tasks = DB[k].tasks || []; 
+  let container = document.getElementById("tasks-list-" + k); 
+  if (!container) return; 
+  container.innerHTML = "";
   
-  tasks.forEach((t,i)=>{
-    let typeClass=t.type==="productive"?"type-prod":"type-nonprod";
-    let typeLabel=t.type==="productive"?"⚡ Productive":"🌀 Non-prod";
-    let prioClass=t.prio==="high"?"prio-high":t.prio==="low"?"prio-low":"prio-mid";
-    let prioLabel=t.prio==="high"?"🔴 HIGH":t.prio==="low"?"🟢 LOW":"🟡 MID";
-    let totalMinutes = t.timeSpent || 0;
-    let displayHours = Math.floor(totalMinutes/60);
-    let displayMins = totalMinutes%60;
-    let durText = totalMinutes>0 ? displayHours+"h "+displayMins+"m" : "0h";
-    let assignedColor = getTaskColor(t.text);
+  tasks.forEach((t, i) => {
+    let row = document.createElement("div"); 
+    row.className = "task-row";
+    row.style.borderLeft = `4px solid ${getTaskColor(t.text)}`;
     
-    let row=document.createElement("div"); 
-    row.className="task-row";
-    row.style.borderLeft = `4px solid ${assignedColor}`;
-    row.style.paddingLeft = "12px";
-    row.innerHTML='<div class="check '+(t.done?'done':'')+'" onclick="toggleTaskDone(\''+k+'\','+i+')">'+(t.done?'✓':'')+
-      '</div><input class="task-text '+(t.done?'done':'')+'" style="font-weight:700;" value="' + escapeHtml(t.text) + '" onblur="editTaskText(\''+k+'\','+i+',this.value)">'+
-      '<div class="task-type '+typeClass+'" onclick="cycleTaskType(\''+k+'\','+i+')">'+typeLabel+'</div>'+
-      '<div class="prio-badge '+prioClass+'" onclick="cyclePrio(\''+k+'\','+i+')">'+prioLabel+'</div>'+
-      '<div class="duration-inputs">'+
-        '<input type="number" id="durH-'+k+'-'+i+'" placeholder="h" value="'+displayHours+'" class="dur-num" style="width:36px" step="1" min="0">'+
-        '<span>:</span>'+
-        '<input type="number" id="durM-'+k+'-'+i+'" placeholder="m" value="' + displayMins + '" class="dur-num" style="width:36px" step="5" min="0" max="55">'+
-        '<button class="log-time-btn" onclick="logTaskTime(\''+k+'\','+i+')">log</button>'+
-      '</div>'+
-      '<span class="task-duration">'+durText+'</span>'+
-      '<button style="background:none; border:none; color:var(--high); cursor:pointer" onclick="deleteTask(\''+k+'\','+i+')">✕</button>';
+    // Updated HTML to include editable inputs for text, hours, and minutes
+    row.innerHTML = `
+      <div class="check ${t.done ? 'done' : ''}" onclick="toggleTaskDone('${k}',${i})">${t.done ? '✓' : ''}</div>
+      <input class="task-text ${t.done ? 'done' : ''}" value="${escapeHtml(t.text)}" onblur="updateTaskProperty('${k}', ${i}, 'text', this.value)">
+      <div class="duration-inputs">
+        <input type="number" value="${Math.floor((t.timeSpent || 0) / 60)}" class="dur-num" onchange="updateTaskTime('${k}', ${i}, this.value, document.getElementById('m-${k}-${i}').value)"> h
+        <input type="number" id="m-${k}-${i}" value="${(t.timeSpent || 0) % 60}" class="dur-num" onchange="updateTaskTime('${k}', ${i}, document.getElementById('h-${k}-${i}').value, this.value)"> m
+      </div>
+      <button style="background:none; border:none; color:var(--high); cursor:pointer" onclick="deleteTask('${k}',${i})">✕</button>
+    `;
     container.appendChild(row);
   });
+}
   let tot=tasks.length,don=tasks.filter(t=>t.done).length; 
   let fill=document.querySelector("#card-"+k+" .progress-fill"); 
   if(fill) fill.style.width=tot?Math.round(don/tot*100)+"%":"0%";
 }
+// Generic function to update any property (like text)
+function updateTaskProperty(k, i, prop, value) {
+    DB[k].tasks[i][prop] = value;
+    scheduleSync();
+}
 
+// Specific function to calculate and update time
+function updateTaskTime(k, i, hours, minutes) {
+    const totalMinutes = (parseInt(hours) || 0) * 60 + (parseInt(minutes) || 0);
+    DB[k].tasks[i].timeSpent = totalMinutes;
+    scheduleSync();
+    // Optional: Re-render if you want the visual 'time spent' label to update
+    renderDayTasks(k); 
+}
+  
 function logTaskTime(k,i){
   let h=parseInt(document.getElementById("durH-"+k+"-"+i)?.value)||0;
   let m=parseInt(document.getElementById("durM-"+k+"-"+i)?.value)||0;
