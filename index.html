@@ -2234,8 +2234,14 @@ let savedKey=localStorage.getItem("planner_key");
 if(savedKey){ 
 
   apiKey=savedKey; 
-  binId=localStorage.getItem("planner_bin")||""; 
-alert("BIN ID: " + binId);
+binId = localStorage.getItem("planner_bin") || "";
+
+if(!binId){
+  binId = prompt("Enter JSONBin Bin ID");
+  if(binId){
+    localStorage.setItem("planner_bin", binId);
+  }
+}alert("BIN ID: " + binId);
   loadFromCloud(); 
 setInterval(checkForUpdates, 5000);
 } else { 
