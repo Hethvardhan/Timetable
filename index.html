@@ -493,9 +493,8 @@ let calViewMode = "month";
 let panelType = "study";
 
 let apiKey = null, binId = null;
-
 let saveTimer = null;
-
+let lastCloudVersion = 0;
 
 
 function dkey(d) { 
@@ -1170,8 +1169,12 @@ async function saveToCloud(){
 
   try{ 
 
-    let payload={db:DB, roadmap:ROADMAP}; 
-
+let payload = {
+  db: DB,
+  roadmap: ROADMAP,
+  updatedAt: Date.now()
+};
+    
     if(!binId){ 
 
       let r=await fetch("https://api.jsonbin.io/v3/b",{method:"POST",headers:{"Content-Type":"application/json","X-Master-Key":apiKey,"X-Bin-Name":"planner_data"},body:JSON.stringify(payload)}); 
@@ -1222,10 +1225,17 @@ async function loadFromCloud(){
 
         let data=await r.json(); 
 
-        if(data.record && data.record.db) DB=data.record.db; 
+if(data.record){
 
-        if(data.record && data.record.roadmap && data.record.roadmap.length) ROADMAP=data.record.roadmap; 
+    if(data.record.db)
+        DB = data.record.db;
 
+    if(data.record.roadmap?.length)
+        ROADMAP = data.record.roadmap;
+
+    lastCloudVersion =
+        data.record.updatedAt || 0;
+}
       } 
 
     } catch(e) { 
@@ -1245,7 +1255,47 @@ async function loadFromCloud(){
 }
 
 
+async function checkForUpdates(){
 
+  if(!apiKey || !binId) return;
+
+  try{
+
+    let r = await fetch(
+      "https://api.jsonbin.io/v3/b/" +
+      binId +
+      "/latest",
+      {
+        headers:{
+          "X-Master-Key": apiKey
+        }
+      }
+    );
+
+    if(!r.ok) return;
+
+    let data = await r.json();
+
+    let remoteVersion =
+      data.record?.updatedAt || 0;
+
+    if(remoteVersion > lastCloudVersion){
+
+      lastCloudVersion = remoteVersion;
+
+      DB = data.record.db || {};
+      ROADMAP = data.record.roadmap || [];
+
+      fullRender();
+
+      console.log("Cloud update detected");
+    }
+
+  }catch(err){
+    console.error(err);
+  }
+}
+  
 function getWeekDates(base){
 
   let d=new Date(base); let dow=d.getDay(); let mon=new Date(d); mon.setDate(d.getDate()-(dow===0?6:dow-1));
@@ -1534,8 +1584,27 @@ function renderDayEvents(k){
 
   let events=DB[k].events||[]; 
 
-  evDiv.innerHTML=events.map((e,i)=>'<div class="event-item" style="background:'+getTaskColor(e.title)+'; color:#000"><div style="font-weight:800; text-transform:uppercase;">'+escapeHtml(e.title)+'</div><div class="event-item-time">'+formatDisplayTime(e.start)+' - '+formatDisplayTime(e.end)+'</div><button style="background:none;border:none;color:#000; font-weight:800; cursor:pointer; margin-left: 15px;" onclick="deleteEvent(\''+k+'\','+i+')">✕</button></div>').join(""); 
+  evDiv.innerHTML=events.map((e,i)=>'<div class="event-item" style="background:'+getTaskColor(e.title)+'; color:#000"><div style="font-weight:800; text-transform:uppercase;">'+escapeHtml(e.title)+'</div><div class="event-item-time">'+formatDisplayTime(e.start)+' - '+formatDisplayTime(e.end)+'</div><button
+style="
+background:none;
+border:none;
+cursor:pointer;
+margin-left:8px;"
+onclick="editEvent('${k}',${i})">
+✏️
+</button>
 
+<button
+style="
+background:none;
+border:none;
+color:#000;
+font-weight:800;
+cursor:pointer;
+margin-left:8px;"
+onclick="deleteEvent('${k}',${i})">
+✕
+</button>
 }
 
 
@@ -1556,6 +1625,34 @@ function deleteEvent(k,i){
 
 }
 
+  function editEvent(k,i){
+
+  let e = DB[k].events[i];
+
+  let title =
+      prompt("Event title",e.title);
+
+  if(title===null) return;
+
+  let start =
+      prompt("Start time",e.start);
+
+  if(start===null) return;
+
+  let end =
+      prompt("End time",e.end);
+
+  if(end===null) return;
+
+  e.title = title;
+  e.start = start;
+  e.end = end;
+
+  scheduleSync();
+
+  renderDayEvents(k);
+  renderCalendar();
+}
 
 
 function addPanelEvent(){ 
@@ -2155,7 +2252,7 @@ if(savedKey){
   binId=localStorage.getItem("planner_bin")||""; 
 
   loadFromCloud(); 
-
+setInterval(checkForUpdates, 5000);
 } else { 
 
   let key=prompt("Enter JSONbin.io API key (free cross-device sync) — or leave empty to work offline:"); 
@@ -2167,7 +2264,7 @@ if(savedKey){
     localStorage.setItem("planner_key",apiKey); 
 
     loadFromCloud(); 
-
+setInterval(checkForUpdates, 5000);
   } else { 
 
     initRoadmap(); 
