@@ -1576,37 +1576,23 @@ function updateNote(k){
 
 
 
-function renderDayEvents(k){ 
+function renderDayEvents(k){
 
-  let evDiv=document.getElementById("events-list-"+k); 
+  let evDiv=document.getElementById("events-list-"+k);
 
-  if(!evDiv) return; 
+  if(!evDiv) return;
 
-  let events=DB[k].events||[]; 
+  let events=DB[k].events||[];
 
-  evDiv.innerHTML=events.map((e,i)=>'<div class="event-item" style="background:'+getTaskColor(e.title)+'; color:#000"><div style="font-weight:800; text-transform:uppercase;">'+escapeHtml(e.title)+'</div><div class="event-item-time">'+formatDisplayTime(e.start)+' - '+formatDisplayTime(e.end)+'</div><button
-style="
-background:none;
-border:none;
-cursor:pointer;
-margin-left:8px;"
-onclick="editEvent('${k}',${i})">
-✏️
-</button>
-
-<button
-style="
-background:none;
-border:none;
-color:#000;
-font-weight:800;
-cursor:pointer;
-margin-left:8px;"
-onclick="deleteEvent('${k}',${i})">
-✕
-</button>
+  evDiv.innerHTML=events.map((e,i)=>
+    '<div class="event-item" style="background:'+getTaskColor(e.title)+'; color:#000">'+
+      '<div style="font-weight:800; text-transform:uppercase;">'+escapeHtml(e.title)+'</div>'+
+      '<div class="event-item-time">'+formatDisplayTime(e.start)+' - '+formatDisplayTime(e.end)+'</div>'+
+      '<button style="background:none;border:none;cursor:pointer;margin-left:8px;" onclick="editEvent(\''+k+'\','+i+')">✏️</button>'+
+      '<button style="background:none;border:none;color:#000;font-weight:800;cursor:pointer;margin-left:8px;" onclick="deleteEvent(\''+k+'\','+i+')">✕</button>'+
+    '</div>'
+  ).join("");
 }
-
 
 
 function deleteEvent(k,i){ 
