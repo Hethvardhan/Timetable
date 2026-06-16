@@ -2236,7 +2236,7 @@ if(savedKey){
   apiKey=savedKey; 
 alert("KEY FOUND");
   binId=localStorage.getItem("planner_bin")||""; 
-
+alert("BIN ID: " + binId);
   loadFromCloud(); 
 setInterval(checkForUpdates, 5000);
 } else { 
