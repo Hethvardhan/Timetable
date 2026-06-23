@@ -1580,23 +1580,24 @@ function renderDayEvents(k) {
   let evDiv = document.getElementById("events-list-" + k);
   if (!evDiv) return;
   
-  // Get events and create a sorted copy
   let events = DB[k].events || [];
-  let sortedEvents = [...events].sort((a, b) => {
-    return a.start.localeCompare(b.start);
-  });
+  
+  // 1. Create a map that includes the original index so we can find it later
+  let sortedEvents = events.map((e, idx) => ({ ...e, originalIndex: idx }));
+  
+  // 2. Sort by time
+  sortedEvents.sort((a, b) => a.start.localeCompare(b.start));
 
-  // Map over sortedEvents instead of events
-  evDiv.innerHTML = sortedEvents.map((e, i) =>
+  // 3. Render using the originalIndex for the buttons
+  evDiv.innerHTML = sortedEvents.map(e =>
     `<div class="event-item" style="background:${getTaskColor(e.title)}; color:#000">
       <div style="font-weight:800; text-transform:uppercase;">${escapeHtml(e.title)}</div>
       <div class="event-item-time">${formatDisplayTime(e.start)} - ${formatDisplayTime(e.end)}</div>
-      <button style="background:none;border:none;cursor:pointer;margin-left:8px;" onclick="editEvent('${k}', ${i})">✏️</button>
-      <button style="background:none;border:none;color:#000;font-weight:800;cursor:pointer;margin-left:8px;" onclick="deleteEvent('${k}', ${i})">✕</button>
+      <button style="background:none;border:none;cursor:pointer;margin-left:8px;" onclick="editEvent('${k}', ${e.originalIndex})">✏️</button>
+      <button style="background:none;border:none;color:#000;font-weight:800;cursor:pointer;margin-left:8px;" onclick="deleteEvent('${k}', ${e.originalIndex})">✕</button>
     </div>`
   ).join("");
 }
-
 
 function deleteEvent(k,i){ 
 
