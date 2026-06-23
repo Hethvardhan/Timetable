@@ -1579,17 +1579,12 @@ function updateNote(k){
 function renderDayEvents(k) {
   let evDiv = document.getElementById("events-list-" + k);
   if (!evDiv) return;
-  
   let events = DB[k].events || [];
-  
-  // 1. Create a map that includes the original index so we can find it later
-  let sortedEvents = events.map((e, idx) => ({ ...e, originalIndex: idx }));
-  
-  // 2. Sort by time
-  sortedEvents.sort((a, b) => a.start.localeCompare(b.start));
+  // Sort and track index
+  let sorted = events.map((e, idx) => ({ ...e, originalIndex: idx }))
+                     .sort((a, b) => a.start.localeCompare(b.start));
 
-  // 3. Render using the originalIndex for the buttons
-  evDiv.innerHTML = sortedEvents.map(e =>
+  evDiv.innerHTML = sorted.map(e =>
     `<div class="event-item" style="background:${getTaskColor(e.title)}; color:#000">
       <div style="font-weight:800; text-transform:uppercase;">${escapeHtml(e.title)}</div>
       <div class="event-item-time">${formatDisplayTime(e.start)} - ${formatDisplayTime(e.end)}</div>
@@ -1598,7 +1593,7 @@ function renderDayEvents(k) {
     </div>`
   ).join("");
 }
-
+  
 function deleteEvent(k,i){ 
 
   DB[k].events.splice(i,1); 
@@ -1750,79 +1745,47 @@ function renderCalendar(){
 
 
 function renderMonthView(container) {
-
-  let year=currentCalMonth.getFullYear(), month=currentCalMonth.getMonth();
-
-  let first=new Date(year,month,1); 
-
-  let last=new Date(year,month+1,0);
-
-  let startOffset=first.getDay(); 
-
-  startOffset=startOffset===0?6:startOffset-1;
-
+  let year = currentCalMonth.getFullYear(), month = currentCalMonth.getMonth();
+  let first = new Date(year, month, 1); 
+  let last = new Date(year, month + 1, 0);
+  let startOffset = first.getDay(); 
+  startOffset = startOffset === 0 ? 6 : startOffset - 1;
   
-
   let html = '<div class="cal-grid"><div class="cal-weekdays"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div><div class="cal-days">';
-
   
-
-  for(let i=0;i<startOffset;i++){ 
-
-    let d=new Date(year,month,0-startOffset+i+1); 
-
-    html+='<div class="cal-cell other-month"><div class="cal-day-num" style="color:var(--text3)">'+d.getDate()+'</div></div>'; 
-
+  for(let i = 0; i < startOffset; i++) { 
+    let d = new Date(year, month, 0 - startOffset + i + 1); 
+    html += '<div class="cal-cell other-month"><div class="cal-day-num" style="color:var(--text3)">' + d.getDate() + '</div></div>'; 
   }
-
   
-
-  for(let day=1;day<=last.getDate();day++){ 
-
-    let d=new Date(year,month,day); 
-
-    let k=dkey(d); 
-
-    let events=DB[k]?.events||[]; 
-
-    let isToday=k===todayKey(); 
-
+  for(let day = 1; day <= last.getDate(); day++) { 
+    let d = new Date(year, month, day); 
+    let k = dkey(d); 
+    let events = DB[k]?.events || [];
     
+    // Sort events by time and map original index for deletion
+    let sorted = events.map((e, idx) => ({ ...e, originalIndex: idx }))
+                       .sort((a, b) => a.start.localeCompare(b.start));
 
-    let evHtml = events.map((e, idx) => {
-
+    let evHtml = sorted.map((e, idx) => {
       if (idx >= 4) return '';
-
-      return `<div class="cal-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 22px;">
-
+      return `<div class="cal-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 22px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${e.originalIndex});">
                 <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; display: block;">${escapeHtml(e.title)}</span>
-
                 <span class="cal-evt-time">${formatTimeRange(e.start, e.end)}</span>
-
-                <span style="position: absolute; right: 6px; top: 4px; cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 11px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${idx});">✕</span>
-
+                <span style="position: absolute; right: 6px; top: 4px; cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 11px;">✕</span>
               </div>`;
-
     }).join("");
-
     
-
-    html+='<div class="cal-cell '+(isToday?"today":"")+'" onclick="openSidePanel(\''+k+'\')"><div class="cal-day-num">'+day+'</div>'+evHtml+(events.length>4?'<div class="cal-evt" style="background:var(--bg4); color:var(--text2) !important;">+'+(events.length-4)+' more</div>':'')+'</div>'; 
-
+    let isToday = k === todayKey();
+    
+    html += '<div class="cal-cell ' + (isToday ? "today" : "") + '" onclick="openSidePanel(\'' + k + '\')"><div class="cal-day-num">' + day + '</div>' + evHtml + (events.length > 4 ? '<div class="cal-evt" style="background:var(--bg4); color:var(--text2) !important;">+' + (events.length - 4) + ' more</div>' : '') + '</div>'; 
   }
-
   
-
   html += '</div></div>';
-
-  document.getElementById("monthYearLabel").innerHTML=`${first.toLocaleString('default',{month:'long'})} ${year}`;
-
+  document.getElementById("monthYearLabel").innerHTML = `${first.toLocaleString('default', { month: 'long' })} ${year}`;
   container.innerHTML = html;
-
 }
-
-
-
+  
 function renderWeekView(container) {
 
   let weekDates = getWeekDates(currentCalMonth);
@@ -1861,20 +1824,13 @@ function renderWeekView(container) {
 
     } else {
 
-      sortedEvents.forEach(e => {
-
-        html += `<div class="week-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 24px;">
-
-                  ${escapeHtml(e.title)}
-
-                  <span class="week-evt-time">${formatDisplayTime(e.start)} - ${formatDisplayTime(e.end)}</span>
-
-                  <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 12px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${e.originalIndex});">✕</span>
-
-                </div>`;
-
-      });
-
+sortedEvents.forEach(e => {
+  html += `<div class="week-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 24px;">
+            ${escapeHtml(e.title)}
+            <span class="week-evt-time">${formatDisplayTime(e.start)} - ${formatDisplayTime(e.end)}</span>
+            <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 12px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${e.originalIndex});">✕</span>
+          </div>`;
+});
     }
 
     
@@ -1925,20 +1881,13 @@ function renderDayView(container) {
 
   } else {
 
-    sortedEvents.forEach(e => {
-
-      html += `<div class="day-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 36px;">
-
-                ${escapeHtml(e.title)}
-
-                <span class="day-evt-time">${formatDisplayTime(e.start)} to ${formatDisplayTime(e.end)}</span>
-
-                <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 14px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${e.originalIndex});">✕</span>
-
-              </div>`;
-
-    });
-
+sortedEvents.forEach(e => {
+  html += `<div class="day-evt" style="background:${getTaskColor(e.title)}; position: relative; padding-right: 36px;">
+            ${escapeHtml(e.title)}
+            <span class="day-evt-time">${formatDisplayTime(e.start)} to ${formatDisplayTime(e.end)}</span>
+            <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: 900; color: rgba(0,0,0,0.55); font-size: 14px;" onclick="event.stopPropagation(); deleteEvent('${k}', ${e.originalIndex});">✕</span>
+          </div>`;
+});
   }
 
   
